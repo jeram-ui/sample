@@ -1,0 +1,26 @@
+/node_modules
+/vendor
+/public/js
+/public/css
+.env
+Homestead.json
+Homestead.yaml
+npm-debug.log
+yarn-error.log
+/public/js/vendor.js
+/public/js/app.js
+/public/docs/index.html
+/public/docs/collection.json
+/public/mix-manifest.json
+/storage/api-docs/api-docs.json
+/public/mix-manifest.json
+/public/js/app.js
+/public/js/vendor.js
+/public/printList.pdf
+/public/prints.pdf
+/public/printLists.pdf
+/public/images/NAGA LOGO2.png
+/public/images/Logo1.png
+/.env
+/.env
+.env

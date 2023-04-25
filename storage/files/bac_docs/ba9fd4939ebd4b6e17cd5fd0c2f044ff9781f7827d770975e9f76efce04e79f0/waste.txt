@@ -1,0 +1,92 @@
+DELIMITER $$
+
+USE `tenant`$$
+
+DROP PROCEDURE IF EXISTS `RANS_DISPLAY_INCOME_COLLECTION_PER_ACCOUNT_ID`$$
+
+CREATE DEFINER=`admin`@`%` PROCEDURE `RANS_DISPLAY_INCOME_COLLECTION_PER_ACCOUNT_ID`(_dATE DATE,_BRID VARCHAR(250),_ACCOUNT INT(11))
+BEGIN
+SELECT 
+tenant_info.`CORPNAME` AS 'CORPORATE',
+     tenant_info.`TRADENAME` AS 'TRADE NAME',
+      `_GET_UNIT_CODE_BY_TENANT_ID` (tenant_info.id) AS 'LOCATION CODE',
+      bill.BASIC_AMOUNT AS 'billbasic',
+      
+      bill.VAT_AMOUNT AS 'billvat',
+      bill.AMOUNT AS 'billamount',
+      pay.BASIC AS 'paybasic',
+      pay.VAT_PAID AS 'payvat',
+      pay.AMOUNT AS 'AMOUNT',
+      pay.OR AS 'OR NUMBER',
+       pay.ORDATE AS 'OR DATE'
+FROM `tenant_info`
+LEFT JOIN(
+SELECT
+billing_main.`INFOID`
+,billingdtls.`BASIC_AMOUNT`
+,billingdtls.`VAT_AMOUNT`
+,billingdtls.`AMOUNT`
+FROM `billing_main`
+INNER JOIN `billingdtls` ON(
+billing_main.`ID` = billingdtls.`billing_main_ID`
+)
+WHERE  
+   MONTH(`billing_main`.`DUEDATE`) = MONTH(_dATE) 
+      AND YEAR(`billing_main`.`DUEDATE`) = YEAR(_dATE) 
+      AND `BILL_DESC_ID` =_ACCOUNT
+      AND billing_main.`BRID` = _BRID 
+      AND billingdtls.`STATUS` = 'ACTIVE' 
+      AND billing_main.`STATUS_M` = 'ACTIVE' 
+      AND billing_main.`ADJUSTMENT` <> 1 
+)bill ON(bill.INFOID = tenant_info.`id`)
+LEFT JOIN(
+SELECT
+payment_main.`info_id`
+#,SUM(payments.`BASIC`) AS 'BASIC'
+#,SUM(payments.`VAT_PAID`)AS 'VAT_PAID'
+#,SUM(payments.`AMOUNT`) AS 'AMOUNT'
+,payments.`billingdtls_ID`
+,GROUP_CONCAT(DISTINCT(payments.`ORNUM`)) AS 'OR'
+,GROUP_CONCAT(DISTINCT(payments.`OR_DATE`)) AS 'ORDATE'
+,OR_DATE
+,payments.`ID`
+,SUM(
+CASE WHEN payments.`bill_descriptions_ID` IN(17,109,33) THEN payments.`VAT_PAID`
+ WHEN VAT_PAID > 0 AND or_amount > 0 
+AND payments.`adjustment_id` = 0
+ AND payments.`bill_descriptions_ID`  NOT IN(17)  AND or_amount > 0 AND `2307` = 0 AND `2306` = 0 
+   THEN
+ ( ( (payments.`BASIC`  + payments.`VAT_PAID`)
+/ (1+((billingdtls.`VAT_PER` - billingdtls.`TAX_PER`)/100))) ) * (billingdtls.`VAT_PER`/100)
+  
+ ELSE 0
+END  ) AS 'VAT_PAID'
+,SUM(CASE 
+ WHEN `bill_descriptions_ID` IN (_ACCOUNT) AND or_amount > 0 AND `2307` = 0 AND `2306` = 0    AND payments.`adjustment_id` = 0 THEN (payments.`BASIC`  + payments.`VAT_PAID`)
+/ (1+((billingdtls.`VAT_PER` - billingdtls.`TAX_PER`)/100))
+WHEN `bill_descriptions_ID` IN (_ACCOUNT) AND or_amount > 0    AND payments.`adjustment_id` = 0 THEN payments.`BASIC` 
+ELSE 0 END) AS 'BASIC'
+ 
+ ,SUM(CASE WHEN or_amount > 0  THEN or_amount
+ WHEN VAT_PAID = 0 THEN or_amount
+ ELSE 0
+END  ) AS 'AMOUNT'
+FROM `payment_main`
+INNER JOIN `payments`ON(payment_main.`id` = payments.`payment_main_id`)
+INNER JOIN `bill_descriptions` ON (bill_descriptions.`ID` = payments.`bill_descriptions_ID`)
+LEFT JOIN `billingdtls` ON(billingdtls.`ID` = payments.`billingdtls_ID`)
+WHERE 
+  MONTH(`payments`.`OR_DATE`) = MONTH(_dATE) 
+  AND YEAR(`payments`.`OR_DATE`) = YEAR(_dATE) 
+AND payments.`STATUS` ='OK'
+AND payment_main.`br_id` = _BRID
+AND payments.`adv` = 0 AND MEMO = 0
+AND payments.`bill_descriptions_ID` = _ACCOUNT
+GROUP BY payments.`INFOID`
+)pay ON (pay.info_id = tenant_info.`id`)
+WHERE `BR_ID` = _BRID
+AND (bill.BASIC_AMOUNT > 0 OR pay.AMOUNT >0)
+;
+    END$$
+
+DELIMITER ;
