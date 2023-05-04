@@ -351,14 +351,17 @@ Route::namespace('Api')->group(function () {
       Route::prefix('Employee_PDS')->group(function () {
         Route::post('print', 'Mod_HR\pds\basicinfocontroller@print');
         Route::get('basicinfo', 'Mod_HR\pds\basicinfocontroller@basicinfo');
-
+        Route::get('getEdited', 'Mod_HR\pds\basicinfocontroller@getEdited');
+        Route::post('store', 'Mod_HR\pds\basicinfocontroller@store');
         Route::get('familybackground', 'Mod_HR\pds\familybackgroundcontroller@familybackground');
+        Route::post('storeFamily', 'Mod_HR\pds\familybackgroundcontroller@storeFamily');
         //   Route::post('print','Mod_HR\pds\familybackgroundcontroller@print');
 
 
 
 
         Route::get('employmentinformation', 'Mod_HR\pds\employmentinfocontroller@employmentinformation');
+        Route::post('storeEmp_info', 'Mod_HR\pds\employmentinfocontroller@storeEmp_info');
 
         Route::get('educationbackground', 'Mod_HR\pds\educationbackgroundcontroller@educationbackground');
         Route::post('storeEduc', 'Mod_HR\pds\educationbackgroundcontroller@storeEduc');
@@ -386,6 +389,7 @@ Route::namespace('Api')->group(function () {
         Route::get('skillshobbies', 'Mod_HR\pds\skillshobbiescontroller@skillshobbies');
         Route::get('reference', 'Mod_HR\pds\referencecontroller@reference');
         Route::get('salariescontribution', 'Mod_HR\pds\salariescontroller@salariescontribution');
+         Route::post('storeSalary', 'Mod_HR\pds\salariescontroller@storeSalary');
         Route::post('storeVol', 'Mod_HR\pds\voluntaryworkcontroller@storeVol');
         Route::put('voluntaryworkCancel/{id}', 'Mod_HR\pds\voluntaryworkcontroller@voluntaryworkCancel');
       });

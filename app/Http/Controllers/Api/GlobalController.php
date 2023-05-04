@@ -77,6 +77,10 @@ class GlobalController extends Controller
     {
         return config('variable.db_lgu');
     }
+    public function getPDSDummyDB()
+    {
+        return 'pds_dummy';
+    }
     public function getLogo2($h1 = '')
     {
         $html = '<table style="width=100%;">
