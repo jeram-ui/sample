@@ -58,12 +58,160 @@ class basicinfocontroller extends Controller
     // }
        public function getEdited(Request $request)
     {
-      $list = DB::table($this->hr_db . '.employees')
+      $list = DB::table($this->pds_dum . '.employees')
       ->join($this->hr_db .'.employee_information','employee_information.PPID','employees.SysPK_Empl')
         // ->where('SysPK_Empl',Auth::user()->Employee_id)
         ->where('Status_Empl', 'Active')
+        ->where('status', '0')
         ->get();
       return response()->json(new JsonResponse($list));
+    }
+    
+    // public function disapproveData($id)
+    // {
+    //     db::table($this->pds_dum . '.employees')
+    //         ->where('idx', $id)
+    //         ->update(['status' => 1]);
+    //   return response()->json(new JsonResponse(['Message' => 'Transaction completed successfully.', 'status' => 'success']));
+    // }
+
+    public function disapproveData(Request $request)
+    {
+        $list =  $request->list;
+        foreach ($list as $key => $value) {
+            db::table($this->pds_dum . '.employees')
+                ->where("idx", $value['idx'])
+                ->update(['status' => '1']);
+        }
+        return response()->json(new JsonResponse(['Message' => 'Transaction completed successfully.', 'status' => 'success']));
+    }
+
+    
+    public function approveData(Request $request)
+    {
+        $list = $request->list;
+
+        $id = $list['SysPK_Empl'];
+        if ($id > 0) {
+
+            // db::table($this->hr_db . ".tbl_overtime")
+            //     ->where('overtime_id', $id)
+            //     ->update($form);
+
+                $list = array(
+                    'SysPK_Empl' => $list['SysPK_Empl'],
+                    'old_personId' => $list['old_personId'],
+                    'person_id' =>$list['person_id'],
+                    'status_update' => $list['status_update'],
+                    'priority' => $list['priority'],
+                    'AccountNo_Empl' => $list['AccountNo_Empl'],
+                    'Emp_no' => $list['Emp_no'],
+                    'trans_date' => $list['trans_date'],
+                    'Name_Empl' => $list['Name_Empl'],
+                    'FirstName_Empl' => $list['FirstName_Empl'],
+                    'MiddleName_Empl' => $list['MiddleName_Empl'],
+                    'LastName_Empl' => $list['LastName_Empl'],
+                    'SuffixName_Empl' => $list['SuffixName_Empl'],
+                    'PrefixName_Empl' => $list['PrefixName_Empl'],
+                    'nickname' => $list['nickname'],
+                    'Address_Empl' => $list['Address_Empl'],
+                    'empl_contactno' => $list['empl_contactno'],
+                    'email_address' => $list['email_address'],
+                    'BirthDate_Empl' => $list['BirthDate_Empl'],
+                    'weight' => $list['weight'],
+                    'height' => $list['height'],
+                    'gender' => $list['gender'],
+                    'civilStatus' => $list['civilStatus'],
+                    'GSIS_Empl' => $list['GSIS_Empl'],
+                    'SSS_Empl' => $list['SSS_Empl'],
+                    'TIN_Empl' => $list['TIN_Empl'],
+                    'philhealth_no' => $list['philhealth_no'],
+                    'pagibig_no' => $list['pagibig_no'],
+                    'with_atm' => $list['with_atm'],
+                    'bankname_Empl' => $list['bankname_Empl'],
+                    'bankaccount_Empl' => $list['bankaccount_Empl'],
+                    'BloodType_Empl' => $list['BloodType_Empl'],
+                    'EmergencyName_Empl' => $list['EmergencyName_Empl'],
+                    'EmergencyAdd_Empl' => $list['EmergencyAdd_Empl'],
+                    'EmergencyTelNo_Empl' => $list['EmergencyTelNo_Empl'],
+                    'Position_Empl' => $list['Position_Empl'],
+                    'count' => $list['count'],
+                    'Department_Empl' => $list['Department_Empl'],
+                    'shift_code' => $list['shift_code'],
+                    'RateBasis' => $list['RateBasis'],
+                    'RatePerDay_Empls' => $list['RatePerDay_Empls'],
+                    'BasicSalary_Empls' => $list['BasicSalary_Empls'],
+                    'DateHired_Empl' => $list['DateHired_Empl'],
+                    'DateEffectivity_Empl' => $list['DateEffectivity_Empl'],
+                    'DatTerminated_Empl' => $list['DatTerminated_Empl'],
+                    'DateRetired' => $list['DateRetired'],
+                    'Status_Empl' => $list['Status_Empl'],
+                    'Type_Empl' => $list['Type_Empl'],
+                    'office_location' => $list['office_location'],
+                    'payroll_group' => $list['payroll_group'],
+                    'with_bio' => $list['with_bio'],
+                    'with_contract' => $list['with_contract'],
+                    'pertrip' => $list['pertrip'],
+                    'title_id' => $list['title_id'],
+                    'branch_id' => $list['branch_id'],
+                    'time_stamp' => $list['time_stamp'],
+                    'RHouse_No' => $list['RHouse_No'],
+                    'RSubd_Village' => $list['RSubd_Village'],
+                    'RCity_Mun' => $list['RCity_Mun'],
+                    'RZipcode' => $list['RZipcode'],
+                    'RStreet' => $list['RStreet'],
+                    'brgyid' => $list['brgyid'],
+                    'RBrgy' => $list['RBrgy'],
+                    'RProvince' => $list['RProvince'],
+                    'PHouse_No' => $list['PHouse_No'],
+                    'PSubd_Village' => $list['PSubd_Village'],
+                    'PCity_Mun' => $list['PCity_Mun'],
+                    'PZipcode' => $list['PZipcode'],
+                    'PStreet' => $list['PStreet'],
+                    'PBrgy' => $list['PBrgy'],
+                    'PProvince' => $list['PProvince'],
+                    'sal_grade_id' => $list['sal_grade_id'],
+                    'recruitment_id' => $list['recruitment_id'],
+                    'birthplace' => $list['birthplace'],
+                    'government_ID' => $list['government_ID'],
+                    'ID_License_Passport' => $list['ID_License_Passport'],
+                    'Date_Place_Issuance' => $list['Date_Place_Issuance'],
+                    'privilege' => $list['privilege'],
+                    'Appoint_Status' => $list['Appoint_Status'],
+                    'jo_group_no' => $list['jo_group_no'],
+                    'with_pds' => $list['with_pds'],
+                    'level' => $list['level'],
+                    'indigenous_group' => $list['indigenous_group'],
+                    'person_disablity' => $list['person_disablity'],
+                    'solo_parent' => $list['solo_parent'],
+                    'bp_number' => $list['bp_number'],
+                    'designate_dept' => $list['designate_dept'],
+                    'designate_pos' => $list['designate_pos'],
+                    'designate_count' => $list['designate_count'],
+                    'item_no' => $list['item_no'],
+                    'authorized' => $list['authorized'],
+                    'date_promotion' => $list['date_promotion'],
+                    'level_csc' => $list['level_csc'],
+                    'inactive_date' => $list['inactive_date'],
+                    'shift_type' => $list['shift_type'],
+                    'payrollType' => $list['payrollType'],
+                    'group_pm' => $list['group_pm'],
+                    'lc_earn_start_date_casual' => $list['lc_earn_start_date_casual'],
+                    'lc_earn_start_date' => $list['lc_earn_start_date'],
+                    'jo_wtax' => $list['jo_wtax'],
+                    'citizen' => $list['citizen'],
+                    'agency_no' => $list['agency_no'],
+                    'period_from' => $list['period_from'],
+                    'period_to' => $list['period_to'],
+                    'old_emp_id' => $list['old_emp_id'],
+                    'Approved_stats'=>"Approved"
+
+                );
+                db::table($this->hr_db . ".employees")
+                ->where('SysPK_Empl', $id)
+                ->update($form);
+            }
+
     }
 
     public function store(Request $request)

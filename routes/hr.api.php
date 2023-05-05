@@ -352,7 +352,9 @@ Route::namespace('Api')->group(function () {
         Route::post('print', 'Mod_HR\pds\basicinfocontroller@print');
         Route::get('basicinfo', 'Mod_HR\pds\basicinfocontroller@basicinfo');
         Route::get('getEdited', 'Mod_HR\pds\basicinfocontroller@getEdited');
+        Route::post('disapproveData', 'Mod_HR\pds\basicinfocontroller@disapproveData');
         Route::post('store', 'Mod_HR\pds\basicinfocontroller@store');
+        Route::post('approveData', 'Mod_HR\pds\basicinfocontroller@approveData');
         Route::get('familybackground', 'Mod_HR\pds\familybackgroundcontroller@familybackground');
         Route::post('storeFamily', 'Mod_HR\pds\familybackgroundcontroller@storeFamily');
         //   Route::post('print','Mod_HR\pds\familybackgroundcontroller@print');
