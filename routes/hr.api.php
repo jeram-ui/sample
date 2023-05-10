@@ -351,6 +351,7 @@ Route::namespace('Api')->group(function () {
       Route::prefix('Employee_PDS')->group(function () {
         Route::post('print', 'Mod_HR\pds\basicinfocontroller@print');
         Route::get('basicinfo', 'Mod_HR\pds\basicinfocontroller@basicinfo');
+        Route::get('approvedList', 'Mod_HR\pds\basicinfocontroller@approvedList');
         Route::get('getEdited', 'Mod_HR\pds\basicinfocontroller@getEdited');
         Route::post('disapproveData', 'Mod_HR\pds\basicinfocontroller@disapproveData');
         Route::post('store', 'Mod_HR\pds\basicinfocontroller@store');
