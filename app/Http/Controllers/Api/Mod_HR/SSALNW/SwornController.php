@@ -159,6 +159,26 @@ public function __construct(GlobalController $global)
                 }
 
         } else {
+            $form = array(
+                'emp_id' => Auth::user()->Employee_id,
+                'jointFiling'=>$form['jointFiling'],
+                'Sfiling'=>$form['Sfiling'],
+                'NApplicable'=>$form['NApplicable'],
+                'BusinessBox'=>$form['BusinessBox'],
+                'relativeBox'=>$form['relativeBox'],
+                'Fname'=>$form['Fname'],
+                  'Firstname'=>$form['Firstname'],
+                    'MName'=>$form['MName'],
+                    'address'=>$form['address'],
+                    'position'=>$form['position'],
+                    'AOffice'=>$form['AOffice'],
+                    'OAddress'=>$form['OAddress'],
+                    'spouse'=>$form['spouse'],
+                    'Sposition'=>$form['Sposition'],
+                    'SAOffice'=>$form['SAOffice'],
+                    'SOAddress'=>$form['SOAddress'],    
+
+            );
             db::table($this->hr_db .".sworn_table")->insert($form);
             $id = DB::getPdo()->LastInsertId();
 
