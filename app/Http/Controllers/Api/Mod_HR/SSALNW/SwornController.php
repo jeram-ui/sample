@@ -74,6 +74,27 @@ public function __construct(GlobalController $global)
         $relative = $request->relative;
         $id = $form['id'];
         if ($id > 0) {
+
+            $form = array(
+                'emp_id' => Auth::user()->Employee_id,
+                'jointFiling'=>$form['jointFiling'],
+                'Sfiling'=>$form['Sfiling'],
+                'NApplicable'=>$form['NApplicable'],
+                // 'BusinessBox'=>$form['BusinessBox'],
+                // 'relativeBox'=>$form['relativeBox'],
+                'Fname'=>$form['Fname'],
+                  'Firstname'=>$form['Firstname'],
+                    'MName'=>$form['MName'],
+                    'address'=>$form['address'],
+                    'position'=>$form['position'],
+                    'AOffice'=>$form['AOffice'],
+                    'OAddress'=>$form['OAddress'],
+                    'spouse'=>$form['spouse'],
+                    'Sposition'=>$form['Sposition'],
+                    'SAOffice'=>$form['SAOffice'],
+                    'SOAddress'=>$form['SOAddress'],
+
+            );
             db::table($this->hr_db .".sworn_table")
                 ->where('id', $id)
                 ->update($form);
@@ -164,8 +185,9 @@ public function __construct(GlobalController $global)
                 'jointFiling'=>$form['jointFiling'],
                 'Sfiling'=>$form['Sfiling'],
                 'NApplicable'=>$form['NApplicable'],
-                'BusinessBox'=>$form['BusinessBox'],
-                'relativeBox'=>$form['relativeBox'],
+                // 'BusinessBox'=>$form['BusinessBox'],
+                // 'relativeBox'=>$form['relativeBox'],
+                'dateAsOf'=>$form['dateAsOf'],
                 'Fname'=>$form['Fname'],
                   'Firstname'=>$form['Firstname'],
                     'MName'=>$form['MName'],
@@ -176,7 +198,7 @@ public function __construct(GlobalController $global)
                     'spouse'=>$form['spouse'],
                     'Sposition'=>$form['Sposition'],
                     'SAOffice'=>$form['SAOffice'],
-                    'SOAddress'=>$form['SOAddress'],    
+                    'SOAddress'=>$form['SOAddress'],
 
             );
             db::table($this->hr_db .".sworn_table")->insert($form);
@@ -469,7 +491,7 @@ public function __construct(GlobalController $global)
             <tr>
                 <td width="20%"> </td>
                 <td width="15%" align="right"> As of </td>
-                <td width="30%" style="border-bottom:1px solid black" align="center">April 30, 2022</td>
+                <td width="30%" style="border-bottom:1px solid black" align="center">' . (!empty($swornData->dateAsOf) ? (date_format(date_create($swornData->dateAsOf), "M d, Y")) : "") . '</td>
                 <td width="35%"> </td>
             </tr>
 
