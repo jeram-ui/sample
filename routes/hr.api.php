@@ -366,6 +366,10 @@ Route::namespace('Api')->group(function () {
         Route::get('employmentinformation', 'Mod_HR\pds\employmentinfocontroller@employmentinformation');
         Route::post('storeEmp_info', 'Mod_HR\pds\employmentinfocontroller@storeEmp_info');
 
+        Route::get('showDependent', 'Mod_HR\pds\dependentController@showDependent');
+        Route::post('dependentStore', 'Mod_HR\pds\dependentController@dependentStore');
+        Route::put('dependCancel/{id}', 'Mod_HR\pds\dependentController@dependCancel');
+
         Route::get('educationbackground', 'Mod_HR\pds\educationbackgroundcontroller@educationbackground');
         Route::post('storeEduc', 'Mod_HR\pds\educationbackgroundcontroller@storeEduc');
         Route::put('EducCancel/{id}', 'Mod_HR\pds\educationbackgroundcontroller@EducCancel');

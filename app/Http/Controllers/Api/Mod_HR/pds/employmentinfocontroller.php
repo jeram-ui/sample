@@ -15,8 +15,8 @@ class employmentinfocontroller extends Controller
 {
     private $lgu_db;
     private $hr_db;
-   
-   
+
+
   public function __construct(GlobalController $global)
     {
         $this->G = $global;
@@ -28,7 +28,7 @@ class employmentinfocontroller extends Controller
     // {
     //   $list = DB::table($this->hr_db . '.employees')
     //   ->join($this->hr_db .'.employee_information','employee_information.PPID','employees.SysPK_Empl')
-    //   ->join($this->hr_db .'.employees_timeshift','employees.shift_code','employees_timeshift.shiftcode') 
+    //   ->join($this->hr_db .'.employees_timeshift','employees.shift_code','employees_timeshift.shiftcode')
     //   ->where('SysPK_Empl',Auth::user()->Employee_id)
     //   ->get();
     //   return response()->json(new JsonResponse($list));
@@ -36,7 +36,7 @@ class employmentinfocontroller extends Controller
 
     public function employmentinformation(Request $request)
     {
-        $chk = DB::table($this->hr_db . '.employees')
+        $chk = DB::table($this->pds_dum . '.employees')
         ->where('SysPK_Empl',Auth::user()->Employee_id)
         ->count();
         if( $chk > 0 ){
@@ -51,7 +51,7 @@ class employmentinfocontroller extends Controller
         }else{
             $list = DB::table($this->hr_db . '.employees')
             ->join($this->hr_db .'.employee_information','employee_information.PPID','employees.SysPK_Empl')
-            ->join($this->hr_db .'.employees_timeshift','employees.shift_code','employees_timeshift.shiftcode')
+            ->Leftjoin($this->hr_db .'.employees_timeshift','employees.shift_code','employees_timeshift.shiftcode')
               ->where('SysPK_Empl',Auth::user()->Employee_id)
               ->where('Status_Empl', 'Active')
               ->get();
@@ -178,5 +178,5 @@ class employmentinfocontroller extends Controller
 
     }
 
-  
+
 }

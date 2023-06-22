@@ -189,7 +189,7 @@ class hrcontroller extends Controller
       $data = $request->data;
       $date = $request->par;
       // PDF::AddPage('P');
-      PDF::AddPage('P', array(215.9, 330.2));
+      PDF::AddPage('L', array(215.9, 330.2));
       PDF::SetTitle('DTR');
       // PDF::SetHeaderMargin(1);
       PDF::SetTopMargin(1);
@@ -205,9 +205,11 @@ class hrcontroller extends Controller
       PDF::setImageScale(PDF_IMAGE_SCALE_RATIO);
       $Template = '<table width="100%" cellpadding="2">
              <tr>
-                <th width="49%">' . $this->printingDtr($data, $date) . '</th>
+                <th width="32%">' . $this->printingDtr($data, $date) . '</th>
                 <th width="2%"></th>
-                <th width="49%">' . $this->printingDtr($data, $date) . '</th>
+                <th width="32%">' . $this->printingDtr($data, $date) . '</th>
+                <th width="2%"></th>
+                <th width="32%">' . $this->printingDtr($data, $date) . '</th>
              </tr>
         </table>';
       PDF::writeHTML($Template, true, 0, true, 0);
@@ -257,7 +259,7 @@ class hrcontroller extends Controller
 
       $late = $value['Late Equi'];
       $undertime= $value['Undertime Equi'];
-      
+
       $equivalentUndertime = $value['U Equivalent'];
       $equivalentLate = $value['L Equivalent'];
     };
@@ -268,29 +270,56 @@ class hrcontroller extends Controller
     }
     $html = '
     <div>&nbsp;&nbsp;CIVIL SERVICE FORM No. 48</div>
-    <br>
-    <table  cellpadding="3" width="100%" >
-      <tr>
-        <th  height="30px;" width = "100%" align="center" style="border-top:solid black 5px;border-left:solid black 5px;border-right:solid black 5px;"><b>Daily Time Record</b></th>
-      </tr>
-
-     <tr>
-       <th style="border-left:solid black 5px;border-right:solid black 5px;" width = "100%">EMPLOYEE NAME: <b>' . $datax->NAME . '</b></th>
-     </tr>
-     <tr>
-       <th style="border-left:solid black 5px;border-right:solid black 5px;" width = "100%">PERIOD COVERED: <b>' . $covered . '</b></th>
-      </tr>
+    <table  style="border:1px solid black" cellpadding="3" width="100%" >
+        <tr>
+            <td width="100%" align="center"><b>DAILY TIME RECORD</b></td>
+        </tr>
+        <tr>
+            <td height="20px" width="5%"></td>
+            <td width="90%" align="center" style="border-bottom:1px solid black; font-size:8pt"><b>' . $datax->NAME . '</b></td>
+            <td width="5%"></td>
+        </tr>
+        <tr>
+            <td width="100%" align="center">(Name)</td>
+        </tr>
+        <tr>
+            <td width="5%"></td>
+            <td width="25%">For the month of</td>
+            <td width="65%" style="border-bottom:1px solid black"> <b>' . $covered . '</b></td>
+            <td width="5%"></td>
+        </tr>
+        <tr>
+            <td width="5%"></td>
+            <td width="50%">Official hours of arrival (Regular days)</td>
+            <td width="40%" style="border-bottom:1px solid black"></td>
+            <td width="5%"></td>
+        </tr>
+        <tr>
+            <td width="5%"></td>
+            <td width="50%" align="right">and departure (Saturdays)</td>
+            <td width="40%" style="border-bottom:1px solid black"></td>
+            <td width="5%"></td>
+        </tr>
+        <tr>
+          <td width="100%"></td>
+        </tr>
     </table>
+
     <table border=".3" cellpadding="1.5" width="100%">
 
             <tr style="text-align:center;">
-             <th width = "12%">Day</th>
-             <th width = "15%">AM IN</th>
-             <th width = "15%">AM OUT</th>
-             <th width = "15%">PM IN</th>
-             <th width = "15%">PM OUT</th>
-             <th width = "14%">LATE</th>
-             <th width = "14%">UT</th>
+                <th rowspan="2" width = "12%">Day</th>
+                <th colspan="2" width = "30%">AM</th>
+                <th colspan="2" width = "30%">PM</th>
+                <th colspan="2" width = "28%">OVER/UNDER-TIME</th>
+            </tr>
+            <tr style="text-align:center;">
+                <th>Arrival</th>
+                <th>Departure</th>
+                <th>Arrival</th>
+                <th>Departure</th>
+                <th>Hours</th>
+                <th>Minutes</th>
             </tr>
             <tbody>';
     foreach ($data as $key => $value) {
@@ -300,8 +329,8 @@ class hrcontroller extends Controller
                       <tr >
                        <td style="text-align:center;" width = "12%">' . $value['Day'] . '</td>
                        <td width = "60%" style="text-align:center;background-color:lightblue;" >' . $value['prop_notes'] . '</td>
-                       <td width = "14%" style="text-align:center;">' . $value['Late'] . '</td>
-                       <td width = "14%" style="text-align:center;">' . $value['Undertime'] . '</td>
+                       <td width = "14%" style="text-align:center;">' . $value['HRS LATE/UNDERTIME'] . '</td>
+                       <td width = "14%" style="text-align:center;">' . $value['MINS LATE/UNDERTIME'] . '</td>
                       </tr>';
       }elseif ($value['prop_type'] === '1.1') {
         $html .= '
@@ -310,11 +339,11 @@ class hrcontroller extends Controller
         <td width = "30%" style="text-align:center;background-color:lightblue;" >' . $value['prop_notes'] . '</td>
         <td width = "15%"  style="text-align:center;">' . $value['Second In'] . '</td>
         <td width = "15%"  style="text-align:center;"  >' . $value['Second Out'] . '</td>
-        <td width = "14%" style="text-align:center;">' . $value['Late'] . '</td>
-        <td width = "14%" style="text-align:center;">' . $value['Undertime'] . '</td>
+        <td width = "14%" style="text-align:center;">' . $value['HRS LATE/UNDERTIME'] . '</td>
+        <td width = "14%" style="text-align:center;">' . $value['MINS LATE/UNDERTIME'] . '</td>
         </tr>';
-      
-      } 
+
+      }
       elseif ($value['prop_type'] === '1.2') {
         $html .= '
          <tr style="text-align:center;">
@@ -322,18 +351,18 @@ class hrcontroller extends Controller
          <td width = "15%"  style="text-align:center;">' . $value['First In'] . '</td>
          <td width = "15%"  style="text-align:center;"  >' . $value['First Out'] . '</td>
          <td width = "30%" style="text-align:center;background-color:lightblue;" >' . $value['prop_notes'] . '</td>
-         <td width = "14%" style="text-align:center;">' . $value['Late'] . '</td>
-         <td width = "14%" style="text-align:center;">' . $value['Undertime'] . '</td>
+         <td width = "14%" style="text-align:center;">' . $value['HRS LATE/UNDERTIME'] . '</td>
+         <td width = "14%" style="text-align:center;">' . $value['MINS LATE/UNDERTIME'] . '</td>
          </tr>';
-      
+
       }
       elseif ($value['prop_type'] === '2') {
         $html .= '
                         <tr >
                          <td style="text-align:center;" width = "12%">' . $value['Day'] . '</td>
                          <td width = "60%" style="text-align:center;background-color:lightpink;" >' . $value['prop_notes'] . '</td>
-                         <td width = "14%" style="text-align:center;">' . $value['Late'] . '</td>
-                         <td width = "14%" style="text-align:center;">' . $value['Undertime'] . '</td>
+                         <td width = "14%" style="text-align:center;">' . $value['HRS LATE/UNDERTIME'] . '</td>
+                         <td width = "14%" style="text-align:center;">' . $value['MINS LATE/UNDERTIME'] . '</td>
                         </tr>';
       } elseif ($value['prop_type'] === '2.1') {
         $html .= '
@@ -343,16 +372,16 @@ class hrcontroller extends Controller
                         <td width = "15%" style="text-align:center;background-color:lightgray;" >' . $value['First Out'] . '</td>
                         <td width = "15%" style="text-align:center;background-color:lightgray;" >' . $value['Second In'] . '</td>
                         <td width = "15%" style="text-align:center;background-color:lightgray;" >' . $value['Second Out'] . '</td>
-                        <td width = "14%">' . $value['Late'] . '</td>
-                        <td width = "14%">' . $value['Undertime'] . '</td>
+                        <td width = "14%">' . $value['HRS LATE/UNDERTIME'] . '</td>
+                        <td width = "14%">' . $value['MINS LATE/UNDERTIME'] . '</td>
                        </tr>';
       } elseif ($value['prop_type'] === '3') {
         $html .= '
                 <tr >
                  <td style="text-align:center;" width = "12%">' . $value['Day'] . '</td>
                  <td width = "60%" style="text-align:center;background-color:lightgray;" >' . $value['prop_notes'] . '</td>
-                 <td width = "14%" style="text-align:center;">' . $value['Late'] . '</td>
-                 <td width = "14%" style="text-align:center;">' . $value['Undertime'] . '</td>
+                 <td width = "14%" style="text-align:center;">' . $value['HRS LATE/UNDERTIME'] . '</td>
+                 <td width = "14%" style="text-align:center;">' . $value['MINS LATE/UNDERTIME'] . '</td>
                 </tr>';
       } elseif ($value['prop_type'] === '3.1') {
         $html .= '
@@ -362,32 +391,32 @@ class hrcontroller extends Controller
                     <td width = "15%" style="text-align:center;background-color:lightgray;" >' . $value['First Out'] . '</td>
                     <td width = "15%" style="text-align:center;background-color:lightgray;" >' . $value['Second In'] . '</td>
                     <td width = "15%" style="text-align:center;background-color:lightgray;" >' . $value['Second Out'] . '</td>
-                    <td width = "14%">' . $value['Late'] . '</td>
-                    <td width = "14%">' . $value['Undertime'] . '</td>
+                    <td width = "14%">' . $value['HRS LATE/UNDERTIME'] . '</td>
+                    <td width = "14%">' . $value['MINS LATE/UNDERTIME'] . '</td>
                    </tr>';
       } elseif ($value['prop_type'] === '3.2') {
         $html .= '
                             <tr >
                              <td style="text-align:center;" width = "12%">' . $value['Day'] . '</td>
                              <td width = "60%" style="text-align:center;background-color:lightgray;" >' . $value['prop_notes'] . '</td>
-                             <td width = "14%" style="text-align:center;"> ' . $value['Late'] . '</td>
-                             <td width = "14%" style="text-align:center;">' . $value['Undertime'] . '</td>
+                             <td width = "14%" style="text-align:center;"> ' . $value['HRS LATE/UNDERTIME'] . '</td>
+                             <td width = "14%" style="text-align:center;">' . $value['MINS LATE/UNDERTIME'] . '</td>
                             </tr>';
       } elseif ($value['prop_type'] === '3') {
         $html .= '
                             <tr >
                              <td style="text-align:center;" width = "12%">' . $value['Day'] . '</td>
                              <td width = "60%" style="text-align:center;background-color:lightgray;" >' . $value['prop_notes'] . '</td>
-                             <td width = "14%" style="text-align:center;">' . $value['Late'] . '</td>
-                             <td width = "14%" style="text-align:center;">' . $value['Undertime'] . '</td>
+                             <td width = "14%" style="text-align:center;">' . $value['HRS LATE/UNDERTIME'] . '</td>
+                             <td width = "14%" style="text-align:center;">' . $value['MINS LATE/UNDERTIME'] . '</td>
                             </tr>';
       } else if ($value['prop_type'] === '4') {
         $html .= '
                               <tr >
                                <td style="text-align:center;" width = "12%">' . $value['Day'] . '</td>
                                <td width = "60%" style="text-align:center;background-color:lightblue;" >' . $value['prop_notes'] . '</td>
-                               <td width = "14%" style="text-align:center;">' . $value['Late'] . '</td>
-                               <td width = "14%" style="text-align:center;">' . $value['Undertime'] . '</td>
+                               <td width = "14%" style="text-align:center;">' . $value['HRS LATE/UNDERTIME'] . '</td>
+                               <td width = "14%" style="text-align:center;">' . $value['MINS LATE/UNDERTIME'] . '</td>
                               </tr>';
       } elseif ($value['prop_type'] === '4.1') {
         $html .= '
@@ -397,16 +426,16 @@ class hrcontroller extends Controller
                       <td width = "15%" style="text-align:center;background-color:lightblue;" >' . $value['First Out'] . '</td>
                       <td width = "15%" style="text-align:center;background-color:lightblue;" >' . $value['Second In'] . '</td>
                       <td width = "15%" style="text-align:center;background-color:lightblue;" >' . $value['Second Out'] . '</td>
-                      <td width = "14%">' . $value['Late'] . '</td>
-                      <td width = "14%">' . $value['Undertime'] . '</td>
+                      <td width = "14%">' . $value['HRS LATE/UNDERTIME'] . '</td>
+                      <td width = "14%">' . $value['MINS LATE/UNDERTIME'] . '</td>
                      </tr>';
       } elseif ($value['prop_type'] === '4.2') {
         $html .= '
                     <tr >
                      <td style="text-align:center;" width = "12%">' . $value['Day'] . '</td>
                      <td width = "60%" style="text-align:center;background-color:lightblue;" >' . $value['prop_notes'] . '</td>
-                     <td width = "14%" style="text-align:center;">' . $value['Late'] . '</td>
-                     <td width = "14%" style="text-align:center;">' . $value['Undertime'] . '</td>
+                     <td width = "14%" style="text-align:center;">' . $value['HRS LATE/UNDERTIME'] . '</td>
+                     <td width = "14%" style="text-align:center;">' . $value['MINS LATE/UNDERTIME'] . '</td>
                     </tr>';
       } elseif ($value['prop_type'] === '6') {
         $html .= '
@@ -415,8 +444,8 @@ class hrcontroller extends Controller
                        <td width = "30%" style="text-align:center;background-color:lightblue;" >' . $value['prop_notes'] . '</td>
                        <td width = "15%" style="text-align:center;">' . $value['First In'] . '</td>
                        <td width = "15%" style="text-align:center;">' . $value['First Out'] . '</td>
-                       <td width = "14%" style="text-align:center;">' . $value['Late'] . '</td>
-                       <td width = "14%" style="text-align:center;">' . $value['Undertime'] . '</td>
+                       <td width = "14%" style="text-align:center;">' . $value['HRS LATE/UNDERTIME'] . '</td>
+                       <td width = "14%" style="text-align:center;">' . $value['MINS LATE/UNDERTIME'] . '</td>
                       </tr>';
       } elseif ($value['prop_type'] === '6.1') {
         $html .= '
@@ -426,8 +455,8 @@ class hrcontroller extends Controller
                       <td style="text-align:center;background-color:lightblue;" width = "15%">' . $value['First Out'] . '</td>
                       <td style="text-align:center;background-color:lightblue;" width = "15%">' . $value['Second In'] . '</td>
                       <td style="text-align:center;background-color:lightblue;" width = "15%">' . $value['Second Out'] . '</td>
-                      <td style="text-align:center;background-color:lightblue;" width = "14%">' . $value['Late'] . '</td>
-                      <td style="text-align:center;background-color:lightblue;" width = "14%">' . $value['Undertime'] . '</td>
+                      <td style="text-align:center;background-color:lightblue;" width = "14%">' . $value['HRS LATE/UNDERTIME'] . '</td>
+                      <td style="text-align:center;background-color:lightblue;" width = "14%">' . $value['MINS LATE/UNDERTIME'] . '</td>
                       </tr>';
       } elseif ($value['prop_type'] === '6.2') {
         $html .= '
@@ -436,8 +465,8 @@ class hrcontroller extends Controller
                       <td width = "30%" style="text-align:center;background-color:lightblue;" >' . $value['prop_notes'] . '</td>
                       <td width = "15%" style="text-align:center;">' . $value['Second In'] . '</td>
                       <td width = "15%" style="text-align:center;">' . $value['Second Out'] . '</td>
-                      <td width = "14%" style="text-align:center;">' . $value['Late'] . '</td>
-                      <td width = "14%" style="text-align:center;">' . $value['Undertime'] . '</td>
+                      <td width = "14%" style="text-align:center;">' . $value['HRS LATE/UNDERTIME'] . '</td>
+                      <td width = "14%" style="text-align:center;">' . $value['MINS LATE/UNDERTIME'] . '</td>
                       </tr>';
       } elseif ($value['prop_type'] === '7') {
         $html .= '
@@ -447,8 +476,8 @@ class hrcontroller extends Controller
                       <td width = "15%" style="text-align:center;">' . $value['First In'] . '</td>
                       <td width = "15%" style="text-align:center;">' . $value['First Out'] . '</td>
                       <td width = "30%" style="text-align:center;background-color:lightblue;" >' . $value['prop_notes'] . '</td>
-                      <td width = "14%" style="text-align:center;">' . $value['Late'] . '</td>
-                      <td width = "14%" style="text-align:center;">' . $value['Undertime'] . '</td>
+                      <td width = "14%" style="text-align:center;">' . $value['HRS LATE/UNDERTIME'] . '</td>
+                      <td width = "14%" style="text-align:center;">' . $value['MINS LATE/UNDERTIME'] . '</td>
                       </tr>';
       } elseif ($value['prop_type'] === '7.1') {
         $html .= '
@@ -458,8 +487,8 @@ class hrcontroller extends Controller
                       <td style="text-align:center;" width = "15%">' . $value['First Out'] . '</td>
                       <td style="background-color:lightblue;text-align:center;" width = "15%">' . $value['Second In'] . '</td>
                       <td style="background-color:lightblue;text-align:center;" width = "15%">' . $value['Second Out'] . '</td>
-                      <td style="text-align:center;" width = "14%">' . $value['Late'] . '</td>
-                      <td style="text-align:center;" width = "14%">' . $value['Undertime'] . '</td>
+                      <td style="text-align:center;" width = "14%">' . $value['HRS LATE/UNDERTIME'] . '</td>
+                      <td style="text-align:center;" width = "14%">' . $value['MINS LATE/UNDERTIME'] . '</td>
                       </tr>';
       } elseif ($value['prop_type'] === '7.2') {
         $html .= '
@@ -468,8 +497,8 @@ class hrcontroller extends Controller
                       <td width = "15%"  style="text-align:center;">' . $value['First In'] . '</td>
                       <td width = "15%"  style="text-align:center;"  >' . $value['First Out'] . '</td>
                       <td width = "30%" style="text-align:center;background-color:lightblue;" >' . $value['prop_notes'] . '</td>
-                      <td width = "14%" style="text-align:center;">' . $value['Late'] . '</td>
-                      <td width = "14%" style="text-align:center;">' . $value['Undertime'] . '</td>
+                      <td width = "14%" style="text-align:center;">' . $value['HRS LATE/UNDERTIME'] . '</td>
+                      <td width = "14%" style="text-align:center;">' . $value['MINS LATE/UNDERTIME'] . '</td>
                       </tr>';
       } else {
         $html .= '
@@ -479,60 +508,68 @@ class hrcontroller extends Controller
                         <td width = "15%">' . $value['First Out'] . '</td>
                         <td width = "15%">' . $value['Second In'] . '</td>
                         <td width = "15%">' . $value['Second Out'] . '</td>
-                        <td width = "14%">' . $value['Late'] . '</td>
-                        <td width = "14%">' . $value['Undertime'] . '</td>
+                        <td width = "14%">' . $value['HRS LATE/UNDERTIME'] . '</td>
+                        <td width = "14%">' . $value['MINS LATE/UNDERTIME'] . '</td>
                        </tr>';
       }
     }
     $html .= '<tr>
               <td  width = "100%">
-                  <table style="font-size:10px;" width = "100%" style="text-align:center;">
-                     <br/>
-                     <br/>
-                     <tr>
-                     <td style="text-align:left;" width = "70%"></td>
-                     <td style="text-align:center;" width = "30%">Equivalent</td>
-                   </tr>
-                    <tr>
-                      <td style="text-align:left;" width = "70%">Total Late: <b>' . $late . '</b></td>
-                      <td style="text-align:center;" width = "30%">' . $equivalentLate . '</td>
-                    </tr>
-                    <tr>
-                    <td style="text-align:left;" width = "70%">Total UT:&nbsp;&nbsp;  <b>' . $undertime . '</b></td>
-                    <td style="text-align:center;" width = "30%"><b>' . $equivalentUndertime . '</b></td>
-                    <br/>
-                  </tr>
-                  <tr>
-                    <td style="text-align:left;" width = "70%">Total Overtime:&nbsp;&nbsp;  <b>' . $totalOvertimeEqui . '</b></td>
-                    <td style="text-align:center;" width = "30%"><b>' . $totalOvertime . '</b></td>
-                    <br/>
-                  </tr>
-                  <tr>
-                    <td width = "100%">
-                         I CERTIFY on my honor that the above is a true and correct report of the hours of work performed, record of
-                         which was made daily at the time of arrival and departure from office.
-                         </td>
-                    </tr>
-                <br/>
-                <tr>
-                  <td >_________________________________</td>
-                </tr>
+                  <table style="font-size:7px;" width = "100%">
 
-                <tr>
-                <td>Verified as to the prescribed office hours. </td>
-              </tr>
-              <br/>
-              <tr>
-              <td >_________________________________</td>
-            </tr>
-            <tr>
-               <td>In Charge</td>
-             </tr>
-             <tr>
-                <td>' . date_format($datetime, "l jS \of F Y h:i:s A") . '</td>
-           </tr>
-             <br/>
-             <br/>
+                  <tr>
+                        <td width="5%"></td>
+                        <td width="10%"><b>Total</b></td>
+                        <td width="50%" style="border-bottom:1px solid black">' . $value['Total Late/Undertime'] . '</td>
+                        <td width="35%"></td>
+                  </tr>
+
+                   <tr>
+                        <td width="100%"></td>
+                  </tr>
+
+                  <tr>
+                        <td width="5%"></td>
+                        <td width="95%">I CERTIFY on my honor that the above is a true and correct report</td>
+                  </tr>
+
+                  <tr>
+                        <td width="5%"></td>
+                        <td width="90%">of the hours of work performed, record of which was made daily at the</td>
+                  </tr>
+
+                  <tr>
+                      <td width="5%"></td>
+                      <td width="90%">time of arrival at and departure from office</td>
+                  </tr>
+
+                  <tr>
+                      <td width="100%"></td>
+                  </tr>
+
+                  <tr>
+                    <td width="100%" style="border-bottom:1px solid black"></td>
+                  </tr>
+
+                  <tr>
+                        <td width="50%" align="center"><b>Employee</b></td>
+                  </tr>
+                  <tr>
+                        <td width="5%"></td>
+                        <td width="95%">Verified as to the prescribed office hours</td>
+                  </tr>
+                  <tr>
+                        <td width="100%"></td>
+                  </tr>
+                  <tr>
+                        <td width="5%"></td>
+                        <td width="50%" style="border-bottom:1px solid black"></td>
+                  </tr>
+                  <tr>
+                        <td width="30%" align="right"><b>In Charge</b></td>
+                        <td width="70%"></td>
+                  </tr>
+
               </table>
              </td>
               </tr>

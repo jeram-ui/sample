@@ -59,6 +59,7 @@ public function __construct(GlobalController $global)
         $data['liabilities'] =db::table($this->hr_db .'.sworn_liabilities')->where('mainID', $id)->get();
         $data['business'] =db::table($this->hr_db .'.sworn_businessinterest')->where('mainID', $id)->get();
         $data['relative'] =db::table($this->hr_db .'.sworn_relatives')->where('mainID', $id)->get();
+        $data['signatoryxxx'] =db::table($this->hr_db .'.sworn_signatory')->where('mainID', $id)->get();
 
         return response()->json(new JsonResponse($data));
     }
@@ -72,6 +73,7 @@ public function __construct(GlobalController $global)
         $liabilities = $request->liabilities;
         $business = $request->business;
         $relative = $request->relative;
+        $signatoryx = $request->signatoryx;
         $id = $form['id'];
         if ($id > 0) {
 
@@ -178,6 +180,22 @@ public function __construct(GlobalController $global)
                     );
                     db::table($this->hr_db .".sworn_relatives")->insert($datx);
                 }
+
+                $signatoryx = array(
+
+                    'mainID' => $id,
+                    'Dec_govID'=>$signatoryx['Dec_govID'],
+                    'CoDec_govID'=>$signatoryx['CoDec_govID'],
+                    'Dec_IDno'=>$signatoryx['Dec_IDno'],
+                    'CoDec_IDno'=>$signatoryx['CoDec_IDno'],
+                    'Dec_dateIssue'=>$signatoryx['Dec_dateIssue'],
+                    'CoDec_dateIssue'=>$signatoryx['CoDec_dateIssue'],
+                    'SubSworn_date'=>$signatoryx['SubSworn_date'],
+
+                );
+                db::table($this->hr_db .".sworn_signatory")
+                ->where('mainID', $id)
+                ->update($signatoryx);
 
         } else {
             $form = array(
@@ -292,6 +310,21 @@ public function __construct(GlobalController $global)
                 db::table($this->hr_db .".sworn_relatives")->insert($datx);
             }
 
+            $signatoryx = array(
+
+                'mainID' => $id,
+                'Dec_govID'=>$signatoryx['Dec_govID'],
+                'CoDec_govID'=>$signatoryx['CoDec_govID'],
+                'Dec_IDno'=>$signatoryx['Dec_IDno'],
+                'CoDec_IDno'=>$signatoryx['CoDec_IDno'],
+                'Dec_dateIssue'=>$signatoryx['Dec_dateIssue'],
+                'CoDec_dateIssue'=>$signatoryx['CoDec_dateIssue'],
+                'SubSworn_date'=>$signatoryx['SubSworn_date'],
+
+            );
+            db::table($this->hr_db .".sworn_signatory")->insert($signatoryx);
+
+
             // $relative['mainID']=$id;
             // db::table($this->hr_db .".sworn_relatives")->insert($relative);
         }
@@ -340,6 +373,15 @@ public function __construct(GlobalController $global)
         ->where('mainID', $form['id'] )
         ->get();
 
+        $signatory = db::table($this->hr_db . '.sworn_signatory')
+        ->where('mainID', $form['id'] )
+        ->get();
+        $signatoryxx = "";
+
+        foreach ($signatory as $key => $value) {
+            $signatoryxx= $value;
+        }
+
     foreach ($sworn as $key => $value) {
             log::debug($value->Fname);
             $swornData= $value;
@@ -350,7 +392,7 @@ public function __construct(GlobalController $global)
             <td width="5%"></td>
             <td width="40%" align="center" style="font-size:8pt; border-bottom:1px solid black;">'.$value->Fullname.'</td>
             <td width="4%"></td>
-            <td width="25%" align="center" style="font-size:8pt; border-bottom:1px solid black;">'.$value->birthdate.'</td>
+            <td width="25%" align="center" style="font-size:8pt; border-bottom:1px solid black;">' . (!empty($value->birthdate) ? (date_format(date_create($value->birthdate), "M d, Y")) : "") . '</td>
             <td width="4%"></td>
             <td width="20%" align="center" style="font-size:8pt; border-bottom:1px solid black;">'.$value->age.'</td>
             </tr>' ;
@@ -373,28 +415,28 @@ public function __construct(GlobalController $global)
     foreach ($sworn_assets as $key => $value) {
         $assetsTOtal = $assetsTOtal + $value->AcquisitionCost;
             $assets .= '<tr>
-            <td style="font-size:7pt;" height="30px" align="center">'. $value->description1.'</td>
-            <td style="font-size:7pt;" height="30px" align="center">'. $value->kind.'</td>
-            <td style="font-size:7pt;" height="30px" align="center">'. $value->exactLoc.'</td>
-            <td style="font-size:7pt;" height="30px" align="center">'. number_format($value->assessedValue, 2).'</td>
-            <td style="font-size:7pt;" height="30px" align="center">'. number_format($value->CurrentFair, 2).'</td>
-            <td style="font-size:7pt;" height="30px" align="center">'. $value->AcquisitionYear.'</td>
-            <td style="font-size:7pt;" height="30px" align="center">'. $value->AcquisitionMode.'</td>
-            <td style="font-size:7pt;" height="30px" align="center">'. number_format($value->AcquisitionCost, 2).'</td>
+            <td style="font-size:7pt;" align="center">'. $value->description1.'</td>
+            <td style="font-size:7pt;" align="center">'. $value->kind.'</td>
+            <td style="font-size:7pt;" align="center">'. $value->exactLoc.'</td>
+            <td style="font-size:7pt;" align="center">'. number_format($value->assessedValue, 2).'</td>
+            <td style="font-size:7pt;" align="center">'. number_format($value->CurrentFair, 2).'</td>
+            <td style="font-size:7pt;" align="center">'. $value->AcquisitionYear.'</td>
+            <td style="font-size:7pt;" align="center">'. $value->AcquisitionMode.'</td>
+            <td style="font-size:7pt;" align="center">'. number_format($value->AcquisitionCost, 2).'</td>
         </tr>';
         }
 
         if(count($sworn_assets)< 4){
             for($i = count($sworn_assets); $i<4; $i++){
                 $assets .= '<tr>
-            <td style="font-size:7pt;" height="30px" align="center"></td>
-            <td style="font-size:7pt;" height="30px" align="center"></td>
-            <td style="font-size:7pt;" height="30px" align="center"></td>
-            <td style="font-size:7pt;" height="30px" align="center"></td>
-            <td style="font-size:7pt;" height="30px" align="center"></td>
-            <td style="font-size:7pt;" height="30px" align="center"></td>
-            <td style="font-size:7pt;" height="30px" align="center"></td>
-            <td style="font-size:7pt;" height="30px" align="center"></td>
+            <td style="font-size:7pt;" align="center"></td>
+            <td style="font-size:7pt;" align="center"></td>
+            <td style="font-size:7pt;" align="center"></td>
+            <td style="font-size:7pt;" align="center"></td>
+            <td style="font-size:7pt;" align="center"></td>
+            <td style="font-size:7pt;" align="center"></td>
+            <td style="font-size:7pt;" align="center"></td>
+            <td style="font-size:7pt;" align="center"></td>
         </tr>';
         }
     }
@@ -403,18 +445,18 @@ public function __construct(GlobalController $global)
     foreach ($sworn_assetsb as $key => $value) {
         $assestbTotal= $assestbTotal + $value->AcquisitionCostamount;
             $assetsb .= '<tr>
-            <td style="font-size:7pt;" height="30px" align="center">'. $value->Description2.'</td>
-            <td style="font-size:7pt;" height="30px" align="center">'. $value->YearAcquired.'</td>
-            <td style="font-size:7pt;" height="30px" align="center">'. number_format($value->AcquisitionCostamount,2).'</td>
+            <td style="font-size:7pt;" align="center">'. $value->Description2.'</td>
+            <td style="font-size:7pt;" align="center">'. $value->YearAcquired.'</td>
+            <td style="font-size:7pt;" align="center">'. number_format($value->AcquisitionCostamount,2).'</td>
         </tr>';
         }
 
          if(count($sworn_assetsb)< 4){
             for($i = count($sworn_assetsb); $i<4; $i++){
                 $assetsb .= '<tr>
-                <td style="font-size:7pt;" height="30px" align="center"></td>
-                <td style="font-size:7pt;" height="30px" align="center"></td>
-                <td style="font-size:7pt;" height="30px" align="center"></td>
+                <td style="font-size:7pt;" align="center"></td>
+                <td style="font-size:7pt;" align="center"></td>
+                <td style="font-size:7pt;" align="center"></td>
             </tr>';
         }
     }
@@ -426,17 +468,17 @@ public function __construct(GlobalController $global)
         $liabilitiesTotal = $liabilitiesTotal + $value->Ounstandingbalance;
         $Totalall = $assetsTOtal + $assestbTotal - $liabilitiesTotal;
             $liabilities .= '<tr>
-            <td style="font-size:7pt;" height="30px" align="center">'. $value->nature.'</td>
-            <td style="font-size:7pt;" height="30px" align="center">'. $value->NameCreditor.'</td>
-            <td style="font-size:7pt;" height="30px" align="center">'. number_format($value->Ounstandingbalance,2).'</td>
+            <td style="font-size:7pt;" align="center">'. $value->nature.'</td>
+            <td style="font-size:7pt;" align="center">'. $value->NameCreditor.'</td>
+            <td style="font-size:7pt;" align="center">'. number_format($value->Ounstandingbalance,2).'</td>
         </tr>';
         }
         if(count($sworn_liabilities)< 4){
             for($i = count($sworn_liabilities); $i<4; $i++){
                 $liabilities .= '<tr>
-            <td style="font-size:7pt;" height="30px" align="center"></td>
-            <td style="font-size:7pt;" height="30px" align="center"></td>
-            <td style="font-size:7pt;" height="30px" align="center"></td>
+            <td style="font-size:7pt;" align="center"></td>
+            <td style="font-size:7pt;" align="center"></td>
+            <td style="font-size:7pt;" align="center"></td>
         </tr>';
         }
     }
@@ -444,19 +486,19 @@ public function __construct(GlobalController $global)
     $business = "";
     foreach ($sworn_businessinterest as $key => $value) {
             $business .= '<tr>
-            <td style="font-size:7pt;" height="30px" align="center">'. $value->NameEntity.'</td>
-            <td style="font-size:7pt;" height="30px" align="center">'. $value->BusinessAddress.'</td>
-            <td style="font-size:7pt;" height="30px" align="center">'. $value->NatureBusiness.'</td>
-            <td style="font-size:7pt;" height="30px" align="center">'. $value->DateAcqInt.'</td>
+            <td style="font-size:7pt;" align="center">'. $value->NameEntity.'</td>
+            <td style="font-size:7pt;" align="center">'. $value->BusinessAddress.'</td>
+            <td style="font-size:7pt;" align="center">'. $value->NatureBusiness.'</td>
+            <td style="font-size:7pt;" align="center">'. $value->DateAcqInt.'</td>
         </tr>';
         }
         if(count($sworn_businessinterest)< 4){
             for($i = count($sworn_businessinterest); $i<4; $i++){
                 $business .= '<tr>
-                <td style="font-size:7pt;" height="30px" align="center"></td>
-                <td style="font-size:7pt;" height="30px" align="center"></td>
-                <td style="font-size:7pt;" height="30px" align="center"></td>
-                <td style="font-size:7pt;" height="30px" align="center"></td>
+                <td style="font-size:7pt;" align="center"></td>
+                <td style="font-size:7pt;" align="center"></td>
+                <td style="font-size:7pt;" align="center"></td>
+                <td style="font-size:7pt;" align="center"></td>
             </tr>';
         }
     }
@@ -464,19 +506,19 @@ public function __construct(GlobalController $global)
     $Relative = "";
     foreach ($sworn_relatives as $key => $value) {
             $Relative .= '<tr>
-            <td style="font-size:7pt;" height="30px" align="center">'. $value->NameRelative.'</td>
-            <td style="font-size:7pt;" height="30px" align="center">'. $value->Relationship.'</td>
-            <td style="font-size:7pt;" height="30px" align="center">'. $value->Position1.'</td>
-            <td style="font-size:7pt;" height="30px" align="center">'. $value->NameAgency.'</td>
+            <td style="font-size:7pt;" align="center">'. $value->NameRelative.'</td>
+            <td style="font-size:7pt;" align="center">'. $value->Relationship.'</td>
+            <td style="font-size:7pt;" align="center">'. $value->Position1.'</td>
+            <td style="font-size:7pt;" align="center">'. $value->NameAgency.'</td>
         </tr>';
         }
         if(count($sworn_relatives)< 4){
             for($i = count($sworn_relatives); $i<4; $i++){
                 $Relative .= '<tr>
-            <td style="font-size:7pt;" height="30px" align="center"></td>
-            <td style="font-size:7pt;" height="30px" align="center"></td>
-            <td style="font-size:7pt;" height="30px" align="center"></td>
-            <td style="font-size:7pt;" height="30px" align="center"></td>
+            <td style="font-size:7pt;" align="center"></td>
+            <td style="font-size:7pt;" align="center"></td>
+            <td style="font-size:7pt;" align="center"></td>
+            <td style="font-size:7pt;" align="center"></td>
         </tr>';
         }
     }
@@ -825,7 +867,8 @@ public function __construct(GlobalController $global)
 <br />
 
 <table width="100%" border="1" cellpadding="2">
-        <tr>
+        <tr>+
+
 
             <th  style="font-size:7pt; background-color:grey;"  align="center"><b> NAME OF RELATIVE </b></th>
             <th  style="font-size:7pt; background-color:grey;"  align="center"><b> RELATIONSHIP </b></th>
@@ -878,27 +921,27 @@ public function __construct(GlobalController $global)
 <tr>
 <br>
     <td width="18%" style="font-size:8pt"> Government Issued ID: </td>
-    <td width="27%" align="left" style="font-size:7pt; border-bottom:1px solid black"></td>
+    <td width="27%" align="left" style="font-size:7pt; border-bottom:1px solid black">'.$signatoryxx->Dec_govID.'</td>
     <td width="10%"></td>
     <td width="18%" style="font-size:8pt"> Government Issued ID: </td>
-    <td width="27%" align="left" style="font-size:7pt; border-bottom:1px solid black"></td>
+    <td width="27%" align="left" style="font-size:7pt; border-bottom:1px solid black">'.$signatoryxx->CoDec_govID.'</td>
 
 </tr>
 <tr>
     <td width="18%" style="font-size:8pt"> ID No.: </td>
-    <td width="27%" align="left" style="font-size:7pt; border-bottom:1px solid black"></td>
+    <td width="27%" align="left" style="font-size:7pt; border-bottom:1px solid black">'.$signatoryxx->Dec_IDno.'</td>
     <td width="10%"></td>
     <td width="18%" style="font-size:8pt"> ID No.:  </td>
-    <td width="27%" align="left" style="font-size:7pt; border-bottom:1px solid black"></td>
+    <td width="27%" align="left" style="font-size:7pt; border-bottom:1px solid black">'.$signatoryxx->CoDec_IDno.'</td>
 
 </tr>
 
 <tr>
     <td width="18%" style="font-size:8pt">Date Issued: </td>
-    <td width="27%" align="left" style="font-size:7pt; border-bottom:1px solid black"></td>
+    <td width="27%" align="left" style="font-size:7pt; border-bottom:1px solid black">' . (!empty($signatoryxx->Dec_dateIssue) ? (date_format(date_create($signatoryxx->Dec_dateIssue), "M d, Y")) : "") . '</td>
     <td width="10%"></td>
     <td width="18%" style="font-size:8pt"> Date Issued:  </td>
-    <td width="27%" align="left" style="font-size:7pt; border-bottom:1px solid black"></td>
+    <td width="27%" align="left" style="font-size:7pt; border-bottom:1px solid black">' . (!empty($signatoryxx->CoDec_dateIssue) ? (date_format(date_create($signatoryxx->CoDec_dateIssue), "M d, Y")) : "") . '</td>
 
 </tr>
 
@@ -908,9 +951,9 @@ public function __construct(GlobalController $global)
 <tr>
 <br />
     <td width="42%" style="font-size:10pt"><b> &nbsp;&nbsp;&nbsp; SUBSCRIBED AND SWORN</b> to before me this  </td>
-    <td width="5%" style="border-bottom:1px solid black"></td>
+    <td width="5%" align="center" style="border-bottom:1px solid black">' . (!empty($signatoryxx->SubSworn_date) ? (date_format(date_create($signatoryxx->SubSworn_date), "d")) : "") . '</td>
     <td width="6%"> day of</td>
-    <td width="6%" style="border-bottom:1px solid black"> </td>
+    <td width="6%" align="center" style="border-bottom:1px solid black">' . (!empty($signatoryxx->SubSworn_date) ? (date_format(date_create($signatoryxx->SubSworn_date), "M")) : "") . '</td>
     <td width="40%" style="font-size:10pt">, affiant exhibiting to me the above-stated </td>
     </tr>
 <tr>

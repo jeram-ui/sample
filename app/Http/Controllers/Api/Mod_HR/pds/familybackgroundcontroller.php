@@ -15,8 +15,8 @@ class familybackgroundcontroller extends Controller
 {
     private $lgu_db;
     private $hr_db;
-   
-   
+
+
   public function __construct(GlobalController $global)
     {
         $this->G = $global;
@@ -27,7 +27,7 @@ class familybackgroundcontroller extends Controller
 
     public function familybackground(Request $request)
     {
-        $chk = DB::table($this->hr_db . '.employees_familybackground')
+        $chk = DB::table($this->pds_dum . '.employees_familybackground')
         ->where('emp_number',Auth::user()->Employee_id)
         ->count();
         if( $chk > 0 ){
@@ -77,12 +77,12 @@ class familybackgroundcontroller extends Controller
                     'mother_surname' => $form['mother_surname'],
                     'mother_firstname' => $form['mother_firstname'],
                     'mother_middlename' => $form['mother_middlename'],
-            
-        
+
+
                 );
                 db::table($this->pds_dum . ".employees_familybackground")->insert($form);
 
     }
 
-  
+
 }

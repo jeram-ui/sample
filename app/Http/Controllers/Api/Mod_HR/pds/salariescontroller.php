@@ -15,8 +15,8 @@ class salariescontroller extends Controller
 {
     private $lgu_db;
     private $hr_db;
-   
-   
+
+
   public function __construct(GlobalController $global)
     {
         $this->G = $global;
@@ -36,7 +36,7 @@ class salariescontroller extends Controller
 
     public function salariescontribution(Request $request)
     {
-        $chk = DB::table($this->hr_db . '.employees')
+        $chk = DB::table($this->pds_dum . '.employees')
         ->where('SysPK_Empl',Auth::user()->Employee_id)
         ->count();
         if( $chk > 0 ){
@@ -177,5 +177,5 @@ class salariescontroller extends Controller
 
     }
 
-  
+
 }

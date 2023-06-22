@@ -15,8 +15,8 @@ class basicinfocontroller extends Controller
 {
     private $lgu_db;
     private $hr_db;
-   
-   
+
+
   public function __construct(GlobalController $global)
     {
         $this->G = $global;
@@ -27,7 +27,7 @@ class basicinfocontroller extends Controller
 
     public function basicinfo(Request $request)
     {
-        $chk = DB::table($this->hr_db . '.employees')
+        $chk = DB::table($this->pds_dum . '.employees')
         ->where('SysPK_Empl',Auth::user()->Employee_id)
         ->count();
         if( $chk > 0 ){
@@ -75,7 +75,7 @@ class basicinfocontroller extends Controller
         ->get();
       return response()->json(new JsonResponse($list));
     }
-    
+
     // public function disapproveData($id)
     // {
     //     db::table($this->pds_dum . '.employees')
@@ -95,7 +95,7 @@ class basicinfocontroller extends Controller
         return response()->json(new JsonResponse(['Message' => 'Transaction completed successfully.', 'status' => 'success']));
     }
 
-    
+
     public function approveData(Request $request)
     {
         $list = $request->list;
@@ -343,7 +343,7 @@ class basicinfocontroller extends Controller
 
     public function print(Request $request){
     try{
-        
+
             $basicinfo = DB::table($this->hr_db . '.employees')
             ->join($this->hr_db .'.employee_information','employee_information.PPID','employees.SysPK_Empl')
               ->where('SysPK_Empl',Auth::user()->Employee_id)
@@ -352,7 +352,7 @@ class basicinfocontroller extends Controller
               foreach ($basicinfo as $key => $value) {
                 $basic=$value;
               }
-      
+
               $family = DB::table($this->hr_db . '.employees_familybackground')
               ->where('emp_number',Auth::user()->Employee_id)
               ->get();
@@ -360,6 +360,67 @@ class basicinfocontroller extends Controller
               foreach ($family as $key => $value) {
                 $fam=$value;
               }
+
+              $dependent = DB::table($this->hr_db . '.employees_dependent')
+              ->where('SysPK_Empl',Auth::user()->Employee_id)
+              ->get();
+              $depend=[];
+              $depend1 = "";
+              $dependDOB1 = "";
+              $depend2 = "";
+              $dependDOB2 = "";
+              $depend3 = "";
+              $dependDOB3 = "";
+              $depend4 = "";
+              $dependDOB4 = "";
+              $depend5 = "";
+              $dependDOB5 = "";
+              $depend6 = "";
+              $dependDOB6 = "";
+              $depend7 = "";
+              $dependDOB7 = "";
+              $depend8 = "";
+              $dependDOB8 = "";
+              $depend9 = "";
+              $dependDOB9 = "";
+              $depend10 = "";
+              $dependDOB10 = "";
+
+              foreach ($dependent as $key => $value) {
+                $depend=$value;
+                if ($key==0) {
+                    $depend1 = $value->dependentName;
+                    $dependDOB1 = $value->birthdate;
+                }else if($key==1){
+                    $depend2 = $value->dependentName;
+                    $dependDOB2 = $value->birthdate;
+                }else if($key==2){
+                    $depend3 = $value->dependentName;
+                    $dependDOB3 = $value->birthdate;
+                }else if($key==3){
+                    $depend4 = $value->dependentName;
+                    $dependDOB4 = $value->birthdate;
+                }else if($key==4){
+                    $depend5 = $value->dependentName;
+                    $dependDOB5 = $value->birthdate;
+                }else if($key==5){
+                    $depend6 = $value->dependentName;
+                    $dependDOB6 = $value->birthdate;
+                }else if($key==6){
+                    $depend7 = $value->dependentName;
+                    $dependDOB7 = $value->birthdate;
+                }else if($key==7){
+                    $depend8 = $value->dependentName;
+                    $dependDOB8 = $value->birthdate;
+                }else if($key==8){
+                    $depend9 = $value->dependentName;
+                    $dependDOB9 = $value->birthdate;
+                }else if($key==9){
+                    $depend10 = $value->dependentName;
+                    $dependDOB10 = $value->birthdate;
+                }
+              }
+
               $civilservice = DB::table($this->hr_db . '.employees_civilserviceeligibility')
                    ->where('emp_number',Auth::user()->Employee_id)
                    ->get();
@@ -373,10 +434,10 @@ class basicinfocontroller extends Controller
                      <td style="font-size:6pt;" align="center"> '.$value->cse_licenseno.' </td>
                      <td style="font-size:6pt;" align="center"> '.$value->cse_datereleased.' </td>
                  </tr>';
-                     
+
                    }
                    if (count($civilservice)<23) {
-                      for ($i=count($civilservice); $i < 23; $i++) { 
+                      for ($i=count($civilservice); $i < 23; $i++) {
                         $civil.=' <tr>
                         <td height="15px" style="font-size:6pt;" align="center"></td>
                         <td style="font-size:6pt;" align="center">  </td>
@@ -387,12 +448,12 @@ class basicinfocontroller extends Controller
                     </tr> ';
                       }
                     }
-      
-      
+
+
               $education = DB::table($this->hr_db . '.employees_eduback')
-                   ->where('emp_number',Auth::user()->Employee_id)     
+                   ->where('emp_number',Auth::user()->Employee_id)
                    ->get();
-      
+
               $educ="";
               foreach ($education as $key => $value) {
                 $educ.=' <tr>
@@ -407,7 +468,7 @@ class basicinfocontroller extends Controller
                 </tr> ';
               }
               if (count($education)<6) {
-                for ($i=count($education); $i < 6; $i++) { 
+                for ($i=count($education); $i < 6; $i++) {
                   $educ.=' <tr>
                   <td height="20px" style="font-size:7pt; " align="center"></td>
                   <td style="font-size:7pt; "  align="center"></td>
@@ -420,7 +481,7 @@ class basicinfocontroller extends Controller
                   </tr> ';
                 }
               }
-      
+
               $empWork = DB::table($this->hr_db . '.employees_workexperience')
               ->where('emp_number',Auth::user()->Employee_id)
               ->get();
@@ -434,11 +495,11 @@ class basicinfocontroller extends Controller
                 <td style="font-size:6pt;" align="center"> '.$value->workexp_monthlysal.' </td>
                 <td style="font-size:6pt;" align="center"> '.$value->workexp_salgrade.' </td>
                 <td style="font-size:6pt;" align="center"> '.$value->workexp_statofemployment.' </td>
-                <td style="font-size:6pt;" align="center"> '.$value->workexp_govser.' </td>            
+                <td style="font-size:6pt;" align="center"> '.$value->workexp_govser.' </td>
             </tr> ';
               }
               if (count($empWork)<17) {
-                  for ($i=count($empWork); $i < 17; $i++) { 
+                  for ($i=count($empWork); $i < 17; $i++) {
                     $employment.=' <tr>
                     <td height="15px" style="font-size:6pt;" align="center"></td>
                     <td style="font-size:6pt;" align="center">  </td>
@@ -447,11 +508,11 @@ class basicinfocontroller extends Controller
                     <td style="font-size:6pt;" align="center">  </td>
                     <td style="font-size:6pt;" align="center">  </td>
                     <td style="font-size:6pt;" align="center">  </td>
-                    <td style="font-size:6pt;" align="center">  </td>            
+                    <td style="font-size:6pt;" align="center">  </td>
                 </tr> ';
                   }
                 }
-      
+
                 $volwork = DB::table($this->hr_db . '.employees_voluntarilywork')
                 // ->join($this->hr_db .'.employee_information','employee_information.PPID','employees.SysPK_Empl')
                      ->where('emp_number',Auth::user()->Employee_id)
@@ -465,21 +526,21 @@ class basicinfocontroller extends Controller
                        <td style="font-size:6pt;" align="center"> '.$value->dateto.' </td>
                        <td style="font-size:6pt;" align="center"> '.$value->No_ofHours.' </td>
                        <td style="font-size:6pt;" align="center"> '.$value->position.' </td>
-                                 
+
                    </tr> ';
                      }
                      if (count($volwork)<9) {
-                      for ($i=count($volwork); $i < 9; $i++) { 
+                      for ($i=count($volwork); $i < 9; $i++) {
                         $vwork.='  <tr>
                         <td height="13px" style="font-size:6pt;" align="center"> </td>
                         <td style="font-size:6pt;" align="center">  </td>
                         <td style="font-size:6pt;" align="center">  </td>
                         <td style="font-size:6pt;" align="center">  </td>
-                        <td style="font-size:6pt;" align="center">  </td>         
+                        <td style="font-size:6pt;" align="center">  </td>
                     </tr> ';
                       }
                     }
-      
+
                     $training = DB::table($this->hr_db . '.employees_trainingprogram')
                          ->where('emp_number',Auth::user()->Employee_id)
                          ->get();
@@ -495,7 +556,7 @@ class basicinfocontroller extends Controller
                        </tr>';
                          }
                          if (count($training)<7) {
-                          for ($i=count($training); $i < 7; $i++) { 
+                          for ($i=count($training); $i < 7; $i++) {
                             $train.='  <tr>
                             <td height="13px" style="font-size:6pt;" align="center"> </td>
                             <td style="font-size:6pt;" align="center">  </td>
@@ -503,12 +564,12 @@ class basicinfocontroller extends Controller
                             <td style="font-size:6pt;" align="center">  </td>
                             <td style="font-size:6pt;" align="center">  </td>
                             <td style="font-size:6pt;" align="center">  </td>
-                                     
+
                         </tr> ';
                           }
                         }
-      
-                        
+
+
                         $skillsH = DB::table($this->hr_db . '.employees_skillshobbies')
                           ->where('emp_number',Auth::user()->Employee_id)
                           ->get();
@@ -517,17 +578,17 @@ class basicinfocontroller extends Controller
                            $skills.='  <tr>
                            <td rowspan="1" style="font-size:7pt;" align="center"> '.$value->skills_hobbies.' </td>
                            <td rowspan="2" style="font-size:6pt;" align="center"> '.$value->distinction_recognition.' </td>
-                           <td style="font-size:7pt;" align="center"> '.$value->membership_org.' </td>   
+                           <td style="font-size:7pt;" align="center"> '.$value->membership_org.' </td>
                        </tr>  ';
                          }
                          if (count($skillsH)<4) {
-                          for ($i=count($skillsH); $i < 4; $i++) { 
+                          for ($i=count($skillsH); $i < 4; $i++) {
                             $skills.='  <tr>
                             <td height="13px" style="font-size:6pt;" align="center"> </td>
                             <td style="font-size:6pt;" align="center">  </td>
                             <td style="font-size:6pt;" align="center">  </td>
                             <td style="font-size:6pt;" align="center">  </td>
-                            <td style="font-size:6pt;" align="center">  </td>         
+                            <td style="font-size:6pt;" align="center">  </td>
                         </tr> ';
                           }
                         }
@@ -535,7 +596,7 @@ class basicinfocontroller extends Controller
                         $reference = DB::table($this->hr_db . '.employees_reference')
                              ->where('emp_number',Auth::user()->Employee_id)
                              ->get();
-                            
+
                              $ref1Name="";
                              $ref1Address="";
                              $ref1Tele="";
@@ -554,7 +615,7 @@ class basicinfocontroller extends Controller
                                 $ref1Address=$value->address;
                                 $ref1Tele=$value->tel_no;
                              }
-                             
+
                              if ($key==1) {
                                 $ref2Name=$value->reference_name;
                                 $ref2Address=$value->address;
@@ -581,14 +642,14 @@ class basicinfocontroller extends Controller
         $Template='<table width="100%" style="border-left:1px solid black; border-top:1px solid black; border-right:1px solid black;">
         <tr>
             <td  style="font-size:8pt"><b> CS Form No.212 </b></td>
-               
+
         </tr>
         <tr>
             <td  style="font-size:8pt"><b> Revised 2017 </b></td>
         </tr>
         <tr>
             <td width="100%" align="center"  style="font-size:14pt"><b> PERSONAL DATA SHEET </b> </td>
-    
+
         </tr>
         <tr>
             <td width="100%" align="center" style="font-size:6pt"> WARNING: Any misrepresentation made in the Personal Data Sheet and the Work Experience Sheet shall cause the filling of administrative/criminal case/s against the person concerned </td>
@@ -598,26 +659,26 @@ class basicinfocontroller extends Controller
         </tr>
         <table width="100%" style="border-bottom:1px solid black">
         <tr>
-        
+
             <td width="20%" style="font-size:6pt; border-left:1px solid black;"> Print legibly. Tick appropriate boxez ( </td>
             <td width="50%" style="font-size:6pt">
             <input type="checkbox" check="true" name="1" value="1">
-             ) and use separate sheet if necessary. Indicate N/A if not applicable. DO NOT ABBREVIATE.    
+             ) and use separate sheet if necessary. Indicate N/A if not applicable. DO NOT ABBREVIATE.
              </td>
              <td width="10%" style="font-size:7pt; border-left:1px solid black; border-top:1px solid black; border-bottom:1px solid black; border-right:1px solid black;"> 1. CS ID No.</td>
              <td width="20%" style="font-size:5pt; border-top:1px solid black; border-right:1px solid black; border-bottom:1px solid black;" align="right"> (Do not fill up. For CSC use only)</td>
         </tr>
         </table>
-        <tr>    
+        <tr>
             <td height="18px" width="100%" style="font-size:10pt; background-color:grey; border-left:1px solid black; border-top:1px solid black; border-bottom:1px solid black; border-right:1px solid black; color:white; " align="left"> I. PERSONAL INFORMATION</td>
         </tr>
         <table width="100%" cellpadding="4">
             <tr>
                 <td height="15px" width="15%" align="center" style="font-size:8pt;border-left:1px solid black; border-right:1px solid black; border-top:1px solid black; background-color:#C3BEBF; ">2. SURNAME </td>
                 <td width="85%" style="font-size:8pt; border-right:1px solid black; border-bottom:1px solid black;">'.$basic->LastName_Empl.'</td>
-            </tr>  
+            </tr>
             <tr>
-            <td height="15px" width="15%" align="center" style="font-size:8pt;border-left:1px solid black; border-right:1px solid black; background-color:#C3BEBF;"> FIRST NAME </td>   
+            <td height="15px" width="15%" align="center" style="font-size:8pt;border-left:1px solid black; border-right:1px solid black; background-color:#C3BEBF;"> FIRST NAME </td>
             <td height="15px" width="60%" style="font-size:8pt; border-right:1px solid black; border-bottom:1px solid black;"> '.$basic->FirstName_Empl.' </td>
                 <td height="15px" width="25%" style="font-size:6pt;border-right:1px solid black; background-color:#C3BEBF; border-bottom:1px solid black; "> NAME EXTENSION <br/>'.$basic->SuffixName_Empl.'</td>
             </tr>
@@ -625,19 +686,19 @@ class basicinfocontroller extends Controller
                 <td height="15px" width="15%" align="center" style="font-size:8pt;border-left:1px solid black; border-right:1px solid black;border-bottom:1px solid black; background-color:#C3BEBF;"> MIDDLE NAME </td>
                 <td height="15px" width="85%" style="font-size:8pt; border-right:1px solid black; border-bottom:1px solid black;"> '.$basic->MiddleName_Empl.' </td>
                 </tr>
-    
+
         </table>
-            
+
                 <tr>
-                    
+
                     <td height="22px" width="15%" style="font-size:7pt; border-right:1px solid black; border-bottom:1px solid black; background-color:#C3BEBF; border-left:1px solid black;"> 3. DATE OF BIRTH (mm/dd/yyyy) </td>
                     <td width="24%" style="font-size:7pt; border-right:1px solid black; border-bottom:1px solid black;"> '.$basic->BirthDate_Empl.' </td>
                     <td width="25%" style="font-size:7pt; border-right:1px solid black; background-color:#C3BEBF;"> 16. CITIZENSHIP</td>
                     <td width="10%" style="font-size:7pt">
-                    <input type="checkbox" check="true" name="1" value="1"> Filipino   
+                    <input type="checkbox" check="true" name="1" value="1"> Filipino
                     </td>
                     <td width="30%" style="font-size:6pt">
-                    <input type="checkbox" check="true" name="1" value="1"> Dual Citizenship   
+                    <input type="checkbox" check="true" name="1" value="1"> Dual Citizenship
                     </td>
                 </tr>
                 <tr>
@@ -645,11 +706,11 @@ class basicinfocontroller extends Controller
                     <td width="24%" style="font-size:7pt; border-right:1px solid black; border-bottom:1px solid black;"> '.$basic->birthplace.' </td>
                     <td width="25%" style="font-size:7pt; border-right:1px solid black; background-color:#C3BEBF;" align="center"> If holder of dual citizenship, <br> please indicate the details</td>
                     <td width="10%"> </td>
-                    <td width="12%" style="font-size:6pt"> 
+                    <td width="12%" style="font-size:6pt">
                     <input type="checkbox" check="true" name="1" value="1"> by birth  <br> Pls. indicate country:
                     </td>
                     <td width="15%" style="font-size:6pt">
-                    <input type="checkbox" check="true" name="1" value="1"> by naturalization 
+                    <input type="checkbox" check="true" name="1" value="1"> by naturalization
                     </td>
                 </tr>
                 <tr>
@@ -663,7 +724,7 @@ class basicinfocontroller extends Controller
                     <td width="3%" style="font-size:7pt; border-bottom:1px solid black;  border-top:1px solid black;  border-left:1px solid black;"></td>
                  </tr>
                 <tr>
-                    <td style="font-size:7pt; border-right:1px solid black; background-color:#C3BEBF; border-left:1px solid black;"> CIVIL STATUS </td>              
+                    <td style="font-size:7pt; border-right:1px solid black; background-color:#C3BEBF; border-left:1px solid black;"> CIVIL STATUS </td>
                     <td width="12%" style="font-size:7pt;">
                         <input type="checkbox" checked="'.($basic->civilStatus=== 'Single'? "true":"false").'" name="1" value="1"> Single</td>
                     <td width="12%" style="font-size:7pt; border-right:1px solid black; ">
@@ -674,16 +735,16 @@ class basicinfocontroller extends Controller
                      <td width="16.5%" style="font-size:6pt;    "> '.$basic->RStreet.' </td>
                 </tr>
                 <tr>
-                   <td  style="font-size:7pt; border-right:1px solid black;  background-color:#C3BEBF; border-left:1px solid black; "> </td>        
+                   <td  style="font-size:7pt; border-right:1px solid black;  background-color:#C3BEBF; border-left:1px solid black; "> </td>
                    <td width="24%" style="font-size:7pt;  border-right:1px solid black; "></td>
                    <td width="17%" style="font-size:7pt; border-right:1px solid black; background-color:#C3BEBF;">ADDRESS</td>
                    <td width="3%" style="font-size:7pt; border-bottom:1px solid black;"></td>
                    <td width="24%" style="font-size:6pt; border-bottom:1px solid black;">House/Block/Lot no.</td>
                    <td width="17%" style="font-size:6pt; border-bottom:1px solid black; "> Street</td>
                </tr>
-               
+
                <tr>
-                    <td  style="font-size:7pt; border-right:1px solid black; background-color:#C3BEBF; border-left:1px solid black;"></td>        
+                    <td  style="font-size:7pt; border-right:1px solid black; background-color:#C3BEBF; border-left:1px solid black;"></td>
                     <td width="12%" style="font-size:7pt;">
                     <input type="checkbox" checked="'.($basic->civilStatus=== 'Widowed'? "true":"false").'" name="1" value="1"> Widowed</td>
                     <td width="12%" style="font-size:7pt; border-right:1px solid black; ">
@@ -694,7 +755,7 @@ class basicinfocontroller extends Controller
                     <td width="17%" style="font-size:6pt;  ">  <b> '.$basic->RBrgy.' </b></td>
                </tr>
                <tr>
-                    <td  style="font-size:7pt; border-right:1px solid black;background-color:#C3BEBF; border-left:1px solid black;"></td>        
+                    <td  style="font-size:7pt; border-right:1px solid black;background-color:#C3BEBF; border-left:1px solid black;"></td>
                     <td width="12%" style="font-size:7pt;  ">
                     </td>
                     <td width="12%" style="font-size:7pt; border-right:1px solid black; ">
@@ -705,7 +766,7 @@ class basicinfocontroller extends Controller
                     <td width="17%" style="font-size:6pt; border-bottom:1px solid black;  "> Barangay</td>
                 </tr>
                <tr>
-                    <td  style="font-size:7pt; border-right:1px solid black; border-bottom:1px solid black; background-color:#C3BEBF; border-left:1px solid black;"></td>        
+                    <td  style="font-size:7pt; border-right:1px solid black; border-bottom:1px solid black; background-color:#C3BEBF; border-left:1px solid black;"></td>
                     <td width="24%" style="font-size:7pt;  border-right:1px solid black; border-bottom:1px solid black;">
                     <input type="checkbox" checked="'.($basic->civilStatus=== 'Other/s'? "true":"false").'" name="1" value="1"> Other/s:</td>
                     <td width="17%" style="font-size:7pt; background-color:#C3BEBF; border-right:1px solid black; "></td>
@@ -714,7 +775,7 @@ class basicinfocontroller extends Controller
                     <td  width="17%" style="font-size:6pt; "> <b> '.$basic->RProvince.'</b></td>
              </tr>
              <tr>
-                    <td  style="font-size:7pt; border-right:1px solid black; border-bottom:1px solid black;background-color:#C3BEBF; border-left:1px solid black; "> HEIGHT (m)</td>        
+                    <td  style="font-size:7pt; border-right:1px solid black; border-bottom:1px solid black;background-color:#C3BEBF; border-left:1px solid black; "> HEIGHT (m)</td>
                     <td width="24%" style="font-size:7pt;  border-right:1px solid black; border-bottom:1px solid black;">'.$basic->height.'</td>
                     <td width="17%" style="font-size:7pt; border-right:1px solid black; background-color:#C3BEBF;"></td>
                     <td width="3%" style="font-size:7pt; border-bottom:1px solid black;"></td>
@@ -722,14 +783,14 @@ class basicinfocontroller extends Controller
                     <td width="17%" style="font-size:6pt; border-bottom:1px solid black; "> Province</td>
              </tr>
              <tr>
-                    <td  style="font-size:7pt; border-right:1px solid black; border-bottom:1px solid black; background-color:#C3BEBF; border-left:1px solid black; "> WEIGHT (kg)</td>        
+                    <td  style="font-size:7pt; border-right:1px solid black; border-bottom:1px solid black; background-color:#C3BEBF; border-left:1px solid black; "> WEIGHT (kg)</td>
                     <td width="24%" style="font-size:7pt;  border-right:1px solid black; border-bottom:1px solid black;">'.$basic->weight.'</td>
                     <td width="17%" style="font-size:7pt; border-right:1px solid black; border-bottom:1px solid black; background-color:#C3BEBF;" align="center"> ZIP CODE</td>
-                    <td width="44%" style="font-size:7pt; border-right:1px solid black; border-bottom:1px solid black;"> '.$basic->RZipcode.' </td>        
-                    
+                    <td width="44%" style="font-size:7pt; border-right:1px solid black; border-bottom:1px solid black;"> '.$basic->RZipcode.' </td>
+
             </tr>
             <tr>
-                <td  style="font-size:7pt; border-right:1px solid black; border-bottom:1px solid black; background-color:#C3BEBF; border-left:1px solid black; "> <br> BLOOD TYPE</td>        
+                <td  style="font-size:7pt; border-right:1px solid black; border-bottom:1px solid black; background-color:#C3BEBF; border-left:1px solid black; "> <br> BLOOD TYPE</td>
                 <td width="24%" style="font-size:7pt;  border-right:1px solid black; border-bottom:1px solid black;"> '.$basic->BloodType_Empl.' </td>
                 <td width="17%" style="font-size:7pt; border-right:1px solid black; background-color:#C3BEBF;">18. PERMANENT</td>
                 <td width="3%" style="font-size:7pt; "></td>
@@ -737,7 +798,7 @@ class basicinfocontroller extends Controller
                 <td width="17%" style="font-size:6pt;  "><b> '.$basic->PStreet.' </b></td>
             </tr>
             <tr>
-                   <td  style="font-size:7pt; border-right:1px solid black;  background-color:#C3BEBF; border-left:1px solid black; "> </td>        
+                   <td  style="font-size:7pt; border-right:1px solid black;  background-color:#C3BEBF; border-left:1px solid black; "> </td>
                    <td width="24%" style="font-size:7pt;  border-right:1px solid black; "></td>
                    <td width="17%" style="font-size:7pt; border-right:1px solid black; background-color:#C3BEBF;">ADDRESS</td>
                    <td width="3%" style="font-size:7pt; border-bottom:1px solid black;"></td>
@@ -745,16 +806,16 @@ class basicinfocontroller extends Controller
                    <td width="17%" style="font-size:6pt; border-bottom:1px solid black; "> Street</td>
                </tr>
             <tr>
-                <td height="15px" style="font-size:7pt; border-right:1px solid black; border-bottom:1px solid black; background-color:#C3BEBF; border-left:1px solid black; "> <br> GSIS ID NO.</td>        
+                <td height="15px" style="font-size:7pt; border-right:1px solid black; border-bottom:1px solid black; background-color:#C3BEBF; border-left:1px solid black; "> <br> GSIS ID NO.</td>
                 <td width="24%" style="font-size:7pt;  border-right:1px solid black; border-bottom:1px solid black; ">'.$basic->GSIS_Empl.'</td>
                 <td width="17%" style="font-size:7pt;background-color:#C3BEBF; border-right:1px solid black; "></td>
                 <td width="3%" style="font-size:7pt; border-left:1px solid black; "></td>
                 <td width="23%" style="font-size:6pt;  "> <b> '.$basic->PSubd_Village.' </b></td>
                 <td width="17%" style="font-size:6pt; "> <b> '.$basic->PBrgy.' </b></td>
             </tr>
-            
+
             <tr>
-                <td  style="font-size:7pt; border-right:1px solid black; background-color:#C3BEBF; border-left:1px solid black;">PAG-IBIG ID NO.</td>        
+                <td  style="font-size:7pt; border-right:1px solid black; background-color:#C3BEBF; border-left:1px solid black;">PAG-IBIG ID NO.</td>
                 <td width="24%" style="font-size:7pt;  border-right:1px solid black; ">'.$basic->pagibig_no.'</td>
                 <td width="17%" style="font-size:7pt;background-color:#C3BEBF; border-right:1px solid black; "></td>
                 <td width="3%" style="font-size:7pt; border-left:1px solid black; border-bottom:1px solid black; "></td>
@@ -762,7 +823,7 @@ class basicinfocontroller extends Controller
                 <td width="17%" style="font-size:6pt; border-bottom:1px solid black;  "> Barangay</td>
             </tr>
             <tr>
-                    <td  style="font-size:7pt; border-right:1px solid black; border-bottom:1px solid black; background-color:#C3BEBF; border-left:1px solid black;"></td>        
+                    <td  style="font-size:7pt; border-right:1px solid black; border-bottom:1px solid black; background-color:#C3BEBF; border-left:1px solid black;"></td>
                     <td width="24%" style="font-size:7pt;  border-right:1px solid black; border-bottom:1px solid black;"></td>
                     <td width="17%" style="font-size:7pt; background-color:#C3BEBF; border-right:1px solid black;   "></td>
                     <td  width="3%" style="font-size:7pt; border-left:1px solid black;  "></td>
@@ -770,7 +831,7 @@ class basicinfocontroller extends Controller
                     <td  width="17%" style="font-size:6pt; "> <b> '.$basic->PProvince.' </b></td>
              </tr>
             <tr>
-                <td  style="font-size:7pt; border-right:1px solid black; background-color:#C3BEBF; border-left:1px solid black; "> PHILHEALTH NO.</td>        
+                <td  style="font-size:7pt; border-right:1px solid black; background-color:#C3BEBF; border-left:1px solid black; "> PHILHEALTH NO.</td>
                 <td width="24%" style="font-size:7pt;  border-right:1px solid black; ">'.$basic->philhealth_no.'</td>
                 <td width="17%" style="font-size:7pt; border-right:1px solid black; background-color:#C3BEBF;"></td>
                 <td width="3%" style="font-size:7pt; border-bottom:1px solid black;"></td>
@@ -778,11 +839,11 @@ class basicinfocontroller extends Controller
                 <td width="17%" style="font-size:6pt; border-bottom:1px solid black; "> Province</td>
             </tr>
             <tr>
-                    <td  style="font-size:7pt; border-right:1px solid black; border-bottom:1px solid black; background-color:#C3BEBF; border-left:1px solid black; "></td>        
+                    <td  style="font-size:7pt; border-right:1px solid black; border-bottom:1px solid black; background-color:#C3BEBF; border-left:1px solid black; "></td>
                     <td width="24%" style="font-size:7pt;  border-right:1px solid black; border-bottom:1px solid black; "></td>
                     <td width="17%" style="font-size:7pt; border-right:1px solid black; border-bottom:1px solid black; background-color:#C3BEBF;" align="center"> ZIP CODE</td>
-                    <td width="44%" style="font-size:7pt; border-right:1px solid black; border-bottom:1px solid black;"> '.$basic->PZipcode.' </td>        
-                    
+                    <td width="44%" style="font-size:7pt; border-right:1px solid black; border-bottom:1px solid black;"> '.$basic->PZipcode.' </td>
+
             </tr>
             <tr>
                 <td width="15%" height="15px"  style="font-size:7pt; border-right:1px solid black; border-bottom:1px solid black; background-color:#C3BEBF; border-left:1px solid black; "> SSS NO. </td>
@@ -802,6 +863,7 @@ class basicinfocontroller extends Controller
                 <td width="17%" style="font-size:7pt; border-right:1px solid black; border-bottom:1px solid black; background-color:#C3BEBF;" >E-MAIL ADD (if any)</td>
                 <td width="44%" style="font-size:7pt; border-right:1px solid black; border-bottom:1px solid black;"> '.$basic->email_address.'   </td>
             </tr>
+
             <table width="100%" cellpadding="2">
                 <tr>
                     <td width="100%" height="18px" style="font-size:10pt; background-color:grey; border-right:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-top:1px solid black; color:white;"> II. FAMILY BACKGROUND </td>
@@ -809,7 +871,7 @@ class basicinfocontroller extends Controller
                 <tr>
                     <td width="15%" height="15px"  style="font-size:6pt; border-right:1px solid black; border-left:1px solid black; background-color:#C3BEBF; ">22. SPOUSES SURNAME</td>
                     <td width="37%" style="font-size:7pt; border-right:1px solid black; border-bottom:1px solid black; ">'.$fam->spouse_surname.'</td>
-                    
+
                     <td width="26%" style="font-size:6pt; border-right:1px solid black; border-bottom:1px solid black;background-color:#C3BEBF;"> 23. NAME OF CHILD (Write full name and list all) </td>
                     <td width="22%" style="font-size:6pt; border-right:1px solid black; border-bottom:1px solid black; background-color:#C3BEBF;" align="center"> DATE OF BIRTH (mm/dd/yyyy)</td>
                 </tr>
@@ -817,94 +879,94 @@ class basicinfocontroller extends Controller
                     <td width="15%" height="15px"  style="font-size:6pt; border-right:1px solid black;  border-left:1px solid black; background-color:#C3BEBF; "> FIRST NAME</td>
                     <td width="20%" style="font-size:7pt; border-right:1px solid black; border-bottom:1px solid black; ">'.$fam->spouse_firstname.'</td>
                     <td width="17%" style="font-size:6pt; border-right:1px solid black; border-bottom:1px solid black; background-color:#C3BEBF; " > NAME EXTENSION <br/> '.$fam->spouse_ext.' </td>
-                    <td width="26%" style="font-size:6pt; border-bottom:1px solid black "> </td>
-                    <td width="22%" style="font-size:6pt; border-right:1px solid black; border-bottom:1px solid black "></td>
+                    <td width="26%" style="font-size:6pt; border-bottom:1px solid black ">'.$depend1.'</td>
+                    <td width="22%" style="font-size:6pt; border-right:1px solid black; border-bottom:1px solid black ">' . (!empty($dependDOB1) ? (date_format(date_create($dependDOB1), "m/d/Y")) : "") . '</td>
                 </tr>
                 <tr>
                     <td width="15%" height="15px"  style="font-size:6pt; border-right:1px solid black; border-bottom:1px solid black;  border-left:1px solid black; background-color:#C3BEBF; "> MIDDLE NAME</td>
                     <td width="37%" style="font-size:7pt; border-right:1px solid black; border-bottom:1px solid black; ">'.$fam->spouse_middlename.'</td>
-                    
-                    <td width="26%" style="font-size:6pt; border-bottom:1px solid black  "> </td>
-                    <td width="22%" style="font-size:6pt; border-right:1px solid black; border-bottom:1px solid black "></td>
+
+                    <td width="26%" style="font-size:6pt; border-bottom:1px solid black  ">'.$depend2.' </td>
+                    <td width="22%" style="font-size:6pt; border-right:1px solid black; border-bottom:1px solid black ">' . (!empty($dependDOB2) ? (date_format(date_create($dependDOB2), "m/d/Y")) : "") . '</td>
                 </tr>
                 <tr>
                     <td width="15%" height="15px"  style="font-size:6pt; border-right:1px solid black; border-bottom:1px solid black;  border-left:1px solid black; background-color:#C3BEBF; ">  OCCUPATION</td>
                     <td width="37%" style="font-size:7pt; border-right:1px solid black; border-bottom:1px solid black; ">'.$fam->spouse_occupation.'</td>
-                    
-                    <td width="26%" style="font-size:6pt; border-bottom:1px solid black  "> </td>
-                    <td width="22%" style="font-size:6pt; border-right:1px solid black; border-bottom:1px solid black "></td>
+
+                    <td width="26%" style="font-size:6pt; border-bottom:1px solid black  ">'.$depend3.'</td>
+                    <td width="22%" style="font-size:6pt; border-right:1px solid black; border-bottom:1px solid black ">' . (!empty($dependDOB3) ? (date_format(date_create($dependDOB3), "m/d/Y")) : "") . '</td>
                 </tr>
                 <tr>
                     <td width="15%" height="15px"  style="font-size:6pt; border-right:1px solid black; border-bottom:1px solid black;  border-left:1px solid black; background-color:#C3BEBF; ">  EMPLOYER/BUS NAME</td>
                     <td width="37%" style="font-size:7pt; border-right:1px solid black; border-bottom:1px solid black; ">'.$fam->spouse_employer.'</td>
-                    
-                    <td width="26%" style="font-size:6pt; border-bottom:1px solid black  "> </td>
-                    <td width="22%" style="font-size:6pt; border-right:1px solid black; border-bottom:1px solid black "></td>
+
+                    <td width="26%" style="font-size:6pt; border-bottom:1px solid black  ">'.$depend4.'</td>
+                    <td width="22%" style="font-size:6pt; border-right:1px solid black; border-bottom:1px solid black ">' . (!empty($dependDOB4) ? (date_format(date_create($dependDOB4), "m/d/Y")) : "") . '</td>
                 </tr>
                 <tr>
                     <td width="15%" height="15px"  style="font-size:6pt; border-right:1px solid black; border-bottom:1px solid black;  border-left:1px solid black;background-color:#C3BEBF; ">  BUSINESS ADDRESS</td>
                     <td width="37%" style="font-size:7pt; border-right:1px solid black; border-bottom:1px solid black; ">'.$fam->spouse_employeradd.'</td>
-                    
-                    <td width="26%" style="font-size:6pt; border-bottom:1px solid black  "> </td>
-                    <td width="22%" style="font-size:6pt; border-right:1px solid black; border-bottom:1px solid black "></td>
+
+                    <td width="26%" style="font-size:6pt; border-bottom:1px solid black  ">'.$depend5.'</td>
+                    <td width="22%" style="font-size:6pt; border-right:1px solid black; border-bottom:1px solid black ">' . (!empty($dependDOB5) ? (date_format(date_create($dependDOB5), "m/d/Y")) : "") . '</td>
                 </tr>
                 <tr>
                     <td width="15%" height="15px"  style="font-size:6pt; border-right:1px solid black; border-bottom:1px solid black;  border-left:1px solid black; background-color:#C3BEBF; ">  TELEPHONE NO.</td>
                     <td width="37%" style="font-size:7pt; border-right:1px solid black; border-bottom:1px solid black; ">'.$fam->spouse_Telno.'</td>
-                    
-                    <td width="26%" style="font-size:6pt; border-bottom:1px solid black  "> </td>
-                    <td width="22%" style="font-size:6pt; border-right:1px solid black; border-bottom:1px solid black "></td>
+
+                    <td width="26%" style="font-size:6pt; border-bottom:1px solid black  ">'.$depend6.'</td>
+                    <td width="22%" style="font-size:6pt; border-right:1px solid black; border-bottom:1px solid black ">' . (!empty($dependDOB6) ? (date_format(date_create($dependDOB6), "m/d/Y")) : "") . '</td>
                 </tr>
                 <tr>
                     <td width="15%" height="15px"  style="font-size:6pt; border-right:1px solid black; border-left:1px solid black; background-color:#C3BEBF; ">  24. FATHERS SURNAME</td>
                     <td width="37%" style="font-size:7pt; border-right:1px solid black; border-bottom:1px solid black; ">'.$fam->father_surname.'</td>
-                    
-                    <td width="26%" style="font-size:6pt; border-bottom:1px solid black  "> </td>
-                    <td width="22%" style="font-size:6pt; border-right:1px solid black; border-bottom:1px solid black "></td>
+
+                    <td width="26%" style="font-size:6pt; border-bottom:1px solid black  "> '.$depend7.'</td>
+                    <td width="22%" style="font-size:6pt; border-right:1px solid black; border-bottom:1px solid black ">' . (!empty($dependDOB7) ? (date_format(date_create($dependDOB7), "m/d/Y")) : "") . '</td>
                 </tr>
                 <tr>
                     <td width="15%" height="15px"  style="font-size:6pt; border-right:1px solid black; border-left:1px solid black;background-color:#C3BEBF; "> FIRST NAME</td>
                     <td width="20%" style="font-size:7pt; border-right:1px solid black; border-bottom:1px solid black; "> '.$fam->father_firstname.' </td>
-                    <td width="17%" style="font-size:6pt; border-right:1px solid black; border-bottom:1px solid black; background-color:#C3BEBF; ">NAME EXTENSION <br/> '.$fam->father_ext.' </td>   
-                    <td width="26%" style="font-size:6pt; border-bottom:1px solid black"> </td>
-                    <td width="22%" style="font-size:6pt; border-right:1px solid black; border-bottom:1px solid black "> </td>
+                    <td width="17%" style="font-size:6pt; border-right:1px solid black; border-bottom:1px solid black; background-color:#C3BEBF; ">NAME EXTENSION <br/> '.$fam->father_ext.' </td>
+                    <td width="26%" style="font-size:6pt; border-bottom:1px solid black">'.$depend8.'</td>
+                    <td width="22%" style="font-size:6pt; border-right:1px solid black; border-bottom:1px solid black ">' . (!empty($dependDOB8) ? (date_format(date_create($dependDOB8), "m/d/Y")) : "") . '</td>
                  </tr>
             <tr>
                  <td width="15%" height="15px"  style="font-size:6pt; border-right:1px solid black; border-left:1px solid black; border-bottom:1px solid black; background-color:#C3BEBF; ">  MIDDLE NAME</td>
                  <td width="37%" style="font-size:7pt; border-right:1px solid black; border-bottom:1px solid black; ">'.$fam->father_middlename.'</td>
-                 
-                 <td width="26%" style="font-size:6pt; border-bottom:1px solid black  "> </td>
-                 <td width="22%" style="font-size:6pt; border-right:1px solid black; border-bottom:1px solid black "></td>
+
+                 <td width="26%" style="font-size:6pt; border-bottom:1px solid black  ">'.$depend9.'</td>
+                 <td width="22%" style="font-size:6pt; border-right:1px solid black; border-bottom:1px solid black ">' . (!empty($dependDOB9) ? (date_format(date_create($dependDOB9), "m/d/Y")) : "") . '</td>
              </tr>
              <tr>
                     <td width="15%" height="15px"  style="font-size:6pt; border-right:1px solid black; border-left:1px solid black; background-color:#C3BEBF; ">  25. MOTHERS MAIDEN NAME</td>
                     <td width="37%" style="font-size:7pt; border-right:1px solid black; border-bottom:1px solid black; ">'.$fam->mother_surname.'</td>
-                    
-                    <td width="26%" style="font-size:6pt; border-bottom:1px solid black  "> </td>
-                    <td width="22%" style="font-size:6pt; border-right:1px solid black; border-bottom:1px solid black "></td>
+
+                    <td width="26%" style="font-size:6pt; border-bottom:1px solid black  ">'.$depend10.'</td>
+                    <td width="22%" style="font-size:6pt; border-right:1px solid black; border-bottom:1px solid black ">' . (!empty($dependDOB10) ? (date_format(date_create($dependDOB10), "m/d/Y")) : "") . '</td>
                 </tr>
             <tr>
                  <td width="15%" height="15px"  style="font-size:7pt; border-right:1px solid black; border-left:1px solid black; background-color:#C3BEBF; ">  SURNAME</td>
                  <td width="37%" style="font-size:7pt; border-right:1px solid black; border-bottom:1px solid black; ">'.$fam->mother_surname.'</td>
-                 
+
                  <td width="26%" style="font-size:6pt; border-bottom:1px solid black  "> </td>
                  <td width="22%" style="font-size:6pt; border-right:1px solid black; border-bottom:1px solid black "></td>
              </tr>
              <tr>
                     <td width="15%" height="15px"  style="font-size:7pt; border-right:1px solid black; border-left:1px solid black; background-color:#C3BEBF; "> FIRST NAME</td>
-                    <td width="37%" style="font-size:7pt; border-right:1px solid black; border-bottom:1px solid black; "> '.$fam->mother_firstname.' </td> 
+                    <td width="37%" style="font-size:7pt; border-right:1px solid black; border-bottom:1px solid black; "> '.$fam->mother_firstname.' </td>
                     <td width="26%" style="font-size:6pt;"> </td>
                     <td width="22%" style="font-size:6pt; border-right:1px solid black; border-bottom:1px solid black "> </td>
             </tr>
             <tr>
                  <td width="15%" height="15px"  style="font-size:7pt; border-right:1px solid black; border-left:1px solid black; border-bottom:1px solid black; background-color:#C3BEBF; ">  MIDDLE NAME</td>
                  <td width="37%" style="font-size:7pt; border-right:1px solid black; border-bottom:1px solid black; ">'.$fam->mother_middlename.'</td>
-                 
+
                  <td width="48%" style="font-size:7pt; color:red; border-bottom:1px solid black; border-top:1px solid black; border-right:1px solid black; " align="center"> (Continue on separate sheet if necessary)</td>
-                 
+
              </tr>
             </table>
-    
+
             <table width="100%">
                 <tr>
                     <td width="100%" height="18px" style="font-size:10pt; background-color:grey; border-right:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-top:1px solid black; color:white;"> III. EDUCATIONAL BACKGROUND </td>
@@ -918,23 +980,23 @@ class basicinfocontroller extends Controller
                     <td  width="14%" rowspan="2" style="font-size:7pt; background-color:#C3BEBF; "  align="center"> <b> HIGHEST LEVEL/UNITS EARNED (if not graduated) </b></td>
                     <td  width="10%" rowspan="2" style="font-size:7pt; background-color:#C3BEBF;"  align="center"> <br/><br/><b> YEAR GRADUATED </b> </td>
                     <td  rowspan="2" style="font-size:7pt; background-color:#C3BEBF;"  align="center"><b> SCHOLARSHIP/ACADEMIC HONORS RECEIVED </b></td>
-          
+
                 </tr>
                     <tr>
                             <td height="15px" style="font-size:7pt; background-color:#C3BEBF; " align="center"><b> From </b></td>
                             <td style="font-size:7pt; background-color:#C3BEBF; "  align="center"><b> TO </b></td>
                     </tr>
-    
+
                  '.$educ.'
-             
+
                 <tr>
                     <td width="100%" height="9px" style="font-size:7pt;  color:red" align="center"> (Continue on separate sheet if necessary) </td>
                 </tr>
-    
+
             </table>
-         
-    
-            <table width="100%">  
+
+
+            <table width="100%">
             <tr>
                 <td width="12%"  height="15px" align="center" style="font-size:10pt; border-bottom:1px solid black;border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; background-color:#C3BEBF;" align="center"><b>SIGNATURE</b></td>
                 <td width="43%"  style="font-size:6pt; border-bottom:1px solid black; border-top:1px solid black; border-left:1px solid black; border-right:1px solid black;"></td>
@@ -942,9 +1004,9 @@ class basicinfocontroller extends Controller
                 <td width="33%" style="font-size:10pt; border-bottom:1px solid black; border-top:1px solid black; border-left:1px solid black; border-right:1px solid black;"></td>
             </tr>
             <tr>
-    
+
                 <td  width="100%"  height="10px" style="font-size:7pt; border-bottom:1px solid black; border-top:1px solid black; border-left:1px solid black; border-right:1px solid black;" align="right"> CS FORM 212 (Revised 2017), Page 1 of 4 </td>
-    
+
             </tr>
             </table>
             </table>
@@ -952,17 +1014,17 @@ class basicinfocontroller extends Controller
            ';
         $Template2='<table width="100%" border="1" cellpadding="2">
         <tr>
-                 
+
                  <td width="100%" height="18px" style="font-size:10pt; color:white; background-color:grey; border-right:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-top:1px solid black;"> IV. CIVIL SERVICE ELIGIBLITY </td>
                  </tr>
         <tr>
-             
+
              <td rowspan="2" width="30%" style="font-size:8pt; background-color:#C3BEBF;" align="center"> 27. CAREER SERVICE/ RA 1080 (BOARD/BAR) UNDER SPECIAL LAW/CES/CSEE</td>
              <td rowspan="2" width="10%" style="font-size:8pt; background-color:#C3BEBF;" align="center"> RATING</td>
              <td rowspan="2" width="10%" style="font-size:8pt; background-color:#C3BEBF;" align="center"> DATE OF EXAMINATION/CONFERMENT</td>
              <td rowspan="2" width="30%" style="font-size:8pt; background-color:#C3BEBF;" align="center"> <br/>PLACE OF EXAMINATION / CONFERNMENT</td>
              <td width="20%" colspan="2" style="font-size:8pt; background-color:#C3BEBF;" align="center"> LICENSE (if applicable)</td>
-                
+
          </tr>
          <tr>
              <td style="font-size:7pt; background-color:#C3BEBF;" align="center"> NUMBER </td>
@@ -970,7 +1032,7 @@ class basicinfocontroller extends Controller
          </tr>
 
          '.$civil.'
-       
+
          <tr>
              <td height="13px" width="100%" style="font-size:7pt; color:red" align="center"> (Continue on separate sheet if necessary) </td>
          </tr>
@@ -981,7 +1043,7 @@ class basicinfocontroller extends Controller
              </tr>
              <table width="100%" border="1" cellpadding="2">
              <tr>
-             
+
              <td colspan="2" width="18%" style="font-size:7pt; background-color:#C3BEBF;" align="center"> 28.  INCLUSIVE DATES (mm/dd/yyyy)</td>
              <td rowspan="2" width="21%" style="font-size:7pt; background-color:#C3BEBF;" align="center"> POSITION TITLE <br/> (Write in full) </td>
              <td rowspan="2" width="20%" style="font-size:7pt; background-color:#C3BEBF;" align="center"> DEPARTMENT / AGENCY / OFFICE COMPANY <br/> (Write in full)</td>
@@ -989,7 +1051,7 @@ class basicinfocontroller extends Controller
              <td width="10%" rowspan="2" style="font-size:7pt; background-color:#C3BEBF;" align="center"> SALARY GRADE & STEP INCREMENT (Format *00-0*)</td>
              <td width="13%" rowspan="2" style="font-size:7pt; background-color:#C3BEBF;" align="center"> STATUS OF APPOINTMENT</td>
              <td width="8%" rowspan="2" style="font-size:7pt; background-color:#C3BEBF;" align="center"> GOVT SERVICE (YES/NO)</td>
-                
+
          </tr>
          <tr>
              <td style="font-size:7pt; background-color:#C3BEBF;" align="center"> From </td>
@@ -997,7 +1059,7 @@ class basicinfocontroller extends Controller
          </tr>
 
          '.$employment.'
-    
+
      <tr>
          <td width="100%" height="10px" style="font-size:6pt; color:red" align="center"> (Continue on separate sheet if necessary)</td>
      </tr>
@@ -1015,25 +1077,25 @@ class basicinfocontroller extends Controller
          </table>
           ';
 
-        $Template3=' 
+        $Template3='
         <table width="100%" cellpadding="2">
             <tr>
                 <td width="100%" height="18px" style="font-size:10pt; color:white; background-color:grey; border-right:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-top:1px solid black;"> VI. VOLUNTARY WORK OR INVOLVEMENT IN CIVIC / NON-GOVERNMENT / PEOPLE/ VOLUNTARY ORGANIZATION/S </td>
             </tr>
             <table width="100%" border="1" cellpadding="2">
             <tr>
-            
+
                 <td rowspan="2" width="45%" style="font-size:7pt; background-color:#C3BEBF;" align="center"> 29.  NAME & ADDRESS OF ORGANIZATION <br/> (Write in full)</td>
                 <td colspan="2" width="21%" style="font-size:7pt; background-color:#C3BEBF;" align="center"> INCLUSIVE DATES <br/> (mm/dd/yyyy)</td>
                 <td rowspan="2" width="10%" style="font-size:7pt; background-color:#C3BEBF;" align="center"> NUMBER OF HOURS (Write in full)</td>
                 <td rowspan="2" width="24%" style="font-size:7pt; background-color:#C3BEBF;" align="center"> POSITION / NATURE OF WORK</td>
-               
+
             </tr>
             <tr>
                 <td style="font-size:7pt; background-color:#C3BEBF;" align="center"> From </td>
                 <td style="font-size:7pt; background-color:#C3BEBF;" align="center"> TO </td>
             </tr>
-               
+
             '.$vwork.'
 
             <tr>
@@ -1041,37 +1103,37 @@ class basicinfocontroller extends Controller
             </tr>
 
             </table>
-            
-            
+
+
             <table width="100%">
             <tr>
-            
-       
-            
+
+
+
             <td width="100%" height="18px" style="font-size:10pt; color:white; background-color:grey; border-right:1px solid black; border-left:1px solid black; border-top:1px solid black;"> VII.LEARNING AND DEVELOPMENT (L&D) INTERENTIONS PROGRAMS ATTENDED </td>
-               
+
             </tr>
             <tr>
                 <td style="font-size:8pt; color:white; background-color:grey; border-right:1px solid black; border-bottom:1px solid black; border-left:1px solid black;"> (Start from the most recent L & D/training program include only yhe relevant L&D/training taken for the last five (5) years for Division Chief/Executive/Managerial positions)</td>
             </tr>
             <table width="100%" border="1">
             <tr>
-            
+
                 <td width="38%" rowspan="2" style="font-size:7pt; background-color:#C3BEBF;" align="center"> 30. TITLE OF SEMINAR/CONFERENCE/WORKSHOP/SHORT COURSES <br/> (Write in full) </td>
                 <td width="17%" style="font-size:7pt; background-color:#C3BEBF;" align="center" colspan="2"> INCLUSIVE DATES OF ATTENDANCE <br/>(mm/dd/yyyy) </td>
                 <td width="10%" rowspan="2" style="font-size:7pt; background-color:#C3BEBF;" align="center"> <br/>NUMBER OF HOURS </td>
                 <td width="10%" rowspan="2" style="font-size:7pt; background-color:#C3BEBF;" align="center"> Type of  LD(Managerial/Supervisory/Tehnical etc.) </td>
                 <td width="25%" rowspan="2" style="font-size:7pt; background-color:#C3BEBF;" align="center"> CONDUCTED/ SPONSORED BY <br/> (write in full) </td>
-               
-         
+
+
             </tr>
                 <tr>
                     <td style="font-size:7pt; background-color:#C3BEBF;" align="center"> FROM </td>
                     <td style="font-size:7pt; background-color:#C3BEBF;" align="center"> TO </td>
                 </tr>
-               '.$train.' 
+               '.$train.'
             </table>
-            
+
             <table width="100%" cellpadding="2" style="border-left:1px solid black; border-right:1px solid black; border-bottom:1px solid black;">
                 <tr>
                     <td width="100%" height="150px" style="font-size:7pt;"></td>
@@ -1095,9 +1157,9 @@ class basicinfocontroller extends Controller
                 <tr>
                     <td width="100%" height="15px" style="font-size:7pt; color:red" align="center"> (Continue on separate sheet if necessary)</td>
                 </tr>
-                
+
                  <tr>
-                    
+
                         <td width="13%"  height="15px" align="center" style="font-size:10pt; border-bottom:1px solid black;border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; background-color:#C3BEBF;"><b> SIGNATURE </b></td>
                         <td width="42%"  style="font-size:6pt; border-bottom:1px solid black; border-top:1px solid black; border-left:1px solid black; border-right:1px solid black;"></td>
                         <td width="12%" style="font-size:10pt; border-bottom:1px solid black; border-top:1px solid black; border-right:1px solid black; border-left:1px solid black; background-color:#C3BEBF; " align="center"><b> DATE </b></td>
@@ -1111,7 +1173,7 @@ class basicinfocontroller extends Controller
                 </table>
                 </table>
                 </table>';
-                
+
                 $Template4=' <table width="100%" style="border-left:1px solid black; border-right:1px solid black; border-top:1px solid black;">
                 <tr>
                     <td width="65%" style="font-size:8pt; border-right:1px solid black; border-left:1px solid black; background-color:#C3BEBF;"> 34. Are you related by consanguinity or affinity to the appointing or recommending authority or to the chief of bureau or office or the person you who has immediate supervision over you in the Office, Burueau of Department  where you will be appointed,
@@ -1119,8 +1181,8 @@ class basicinfocontroller extends Controller
                     <td width="10%" style="font-size:7pt;">
 
                     </td>
-                    <td width="25%" style="font-size:7pt;"> 
-                    
+                    <td width="25%" style="font-size:7pt;">
+
                     </td>
                 </tr>
                 <tr>
@@ -1143,23 +1205,23 @@ class basicinfocontroller extends Controller
                 </tr>
             <tr>
                 <td  width="65%" style="font-size:8pt; border-left:1px solid black; border-right:1px solid black; background-color:#C3BEBF;"> </td>
-                <td width="20%" style="font-size:7pt;"> 
+                <td width="20%" style="font-size:7pt;">
                If YES, give details;
-                </td>  
+                </td>
             </tr>
             <tr>
                 <td  width="65%" style="font-size:8pt; border-left:1px solid black; border-right:1px solid black; background-color:#C3BEBF;"> </td>
                 <td width="5%"> </td>
-                <td width="29%" style="font-size:7pt; border-bottom:1px solid black;"> '.$others->otherinfo_1BDesc.' 
+                <td width="29%" style="font-size:7pt; border-bottom:1px solid black;"> '.$others->otherinfo_1BDesc.'
                 </td>
          </tr>
             <tr>
                 <td width="65%" style="font-size:8pt; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; background-color:#C3BEBF;"> </td>
-                <td width="35%" style="font-size:7pt; border-left:1px solid black;border-bottom:1px solid black;"> 
+                <td width="35%" style="font-size:7pt; border-left:1px solid black;border-bottom:1px solid black;">
                 </td>
             </tr>
             <tr>
-            
+
                     <td  width="65%" style="font-size:8pt; background-color:#C3BEBF; border-right:1px solid black; border-left:1px solid black;" >35.  a. Have you ever been found guilty of any administrative offense? </td>
                     <td width="10%" style="font-size:7pt; border-left:1px solid black;"> <input type="checkbox" checked="'.($others->otherinfo_2A=== 'Yes'? "true":"false").'" name="1" value="1">
                     YES
@@ -1170,23 +1232,23 @@ class basicinfocontroller extends Controller
             </tr>
             <tr>
                 <td  width="65%" style="font-size:7pt; border-left:1px solid black; border-right:1px solid black; background-color:#C3BEBF;"> </td>
-                <td width="20%" style="font-size:7pt;"> 
+                <td width="20%" style="font-size:7pt;">
                 If YES, give details;
-                </td>  
+                </td>
             </tr>
             <tr>
                 <td  width="65%" style="font-size:7pt; border-left:1px solid black; border-right:1px solid black; background-color:#C3BEBF;"> </td>
                 <td width="5%" style="border-left;1px solid black;"> </td>
-                <td width="29%" style="font-size:7pt; border-bottom:1px solid black;">  '.$others->otherinfo_2ADESC.'    
+                <td width="29%" style="font-size:7pt; border-bottom:1px solid black;">  '.$others->otherinfo_2ADESC.'
                 </td>
             </tr>
             <tr>
                 <td width="65%" style="font-size:7pt; border-left:1px solid black; border-right:1px solid black; background-color:#C3BEBF;"></td>
-                <td width="35%" style="font-size:7pt; border-bottom:1px solid black;">  
+                <td width="35%" style="font-size:7pt; border-bottom:1px solid black;">
                 </td>
             </tr>
             <tr>
-            
+
                     <td  width="65%" style="font-size:8pt; border-left:1px solid black; background-color:#C3BEBF; border-right:1px solid black;" > b. Have you been criminally charged before any court?</td>
                     <td width="10%" style="font-size:7pt; border-left:1px solid black;"> <input type="checkbox" checked="'.($others->otherinfo_2B=== 'Yes'? "true":"false").'" name="1" value="1">
                     YES
@@ -1197,30 +1259,30 @@ class basicinfocontroller extends Controller
             </tr>
             <tr>
                 <td  width="65%" style="font-size:7pt; border-left:1px solid black; border-right:1px solid black; background-color:#C3BEBF;"> </td>
-                <td width="20%" style="font-size:7pt;"> 
+                <td width="20%" style="font-size:7pt;">
                 If YES, give details;
-                </td>  
+                </td>
             </tr>
             <tr>
                 <td  width="65%" style="font-size:7pt; border-left:1px solid black; border-right:1px solid black; background-color:#C3BEBF;"> </td>
                 <td width="15%" style="border-left;1px solid black;font-size:7pt;" align="right"> Date Filed: </td>
-                <td width="18%" style="font-size:7pt; border-bottom:1px solid black;">  '.$others->otherinfo_2BDatefile.'     
+                <td width="18%" style="font-size:7pt; border-bottom:1px solid black;">  '.$others->otherinfo_2BDatefile.'
                 </td>
             </tr>
             <tr>
                 <td  width="65%" style="font-size:7pt; border-left:1px solid black; border-right:1px solid black; background-color:#C3BEBF;"> </td>
                 <td width="15%" style="border-left;1px solid black;font-size:7pt;" align="right">Status of Case/s:</td>
-                <td width="18%" style="font-size:7pt; border-bottom:1px solid black;">   '.$others->otherinfo_2BDesc.'    
+                <td width="18%" style="font-size:7pt; border-bottom:1px solid black;">   '.$others->otherinfo_2BDesc.'
                 </td>
              </tr>
              <tr>
                 <td width="65%" style="font-size:7pt; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; background-color:#C3BEBF;"> </td>
-                <td width="35%" style="font-size:7pt; border-left:1px solid black;border-bottom:1px solid black;"> 
+                <td width="35%" style="font-size:7pt; border-left:1px solid black;border-bottom:1px solid black;">
                 </td>
             </tr>
             <tr>
-            
-            
+
+
             <td  width="65%" style="font-size:8pt; border-right:1px solid black; border-left:1px solid black; background-color:#C3BEBF; " >36. Have you ever been convicted of any crime or violation of any law, devree, ordinance or regulation by any court or tribunal </td>
             <td width="10%" style="font-size:7pt; border-left:1px solid black;"> <input type="checkbox" checked="'.($others->otherinfo_3=== 'Yes'? "true":"false").'" name="1" value="1">
             YES
@@ -1231,19 +1293,19 @@ class basicinfocontroller extends Controller
     </tr>
     <tr>
         <td  width="65%" style="font-size:7pt; border-right:1px solid black; border-left:1px solid black; background-color:#C3BEBF;"> </td>
-        <td width="20%" style="font-size:7pt;"> 
+        <td width="20%" style="font-size:7pt;">
         If YES, give details;
-        </td>  
+        </td>
     </tr>
     <tr>
         <td  width="65%" style="font-size:7pt; border-right:1px solid black; border-left:1px solid black; background-color:#C3BEBF;"> </td>
         <td width="5%" style="border-left;1px solid black;"> </td>
-        <td width="29%" style="font-size:7pt; border-bottom:1px solid black;"> '.$others->otherinfo_3Desc.'    
+        <td width="29%" style="font-size:7pt; border-bottom:1px solid black;"> '.$others->otherinfo_3Desc.'
         </td>
     </tr>
     <tr>
         <td width="65%" style="font-size:7pt; border-right:1px solid black; border-left:1px solid black;  border-bottom:1px solid black; background-color:#C3BEBF;"></td>
-        <td width="35%" style="font-size:7pt; border-bottom:1px solid black;">  
+        <td width="35%" style="font-size:7pt; border-bottom:1px solid black;">
         </td>
     </tr>
     <tr>
@@ -1257,19 +1319,19 @@ class basicinfocontroller extends Controller
     </tr>
      <tr>
         <td  width="65%" style="font-size:7pt; border-right:1px solid black; border-left:1px solid black; background-color:#C3BEBF;"> </td>
-        <td width="20%" style="font-size:7pt;"> 
+        <td width="20%" style="font-size:7pt;">
         If YES, give details;
-        </td>  
+        </td>
     </tr>
     <tr>
         <td  width="65%" style="font-size:7pt; border-right:1px solid black; border-left:1px solid black; background-color:#C3BEBF;"> </td>
         <td width="5%" style="border-left;1px solid black;"> </td>
-        <td width="29%" style="font-size:7pt; border-bottom:1px solid black;">   '.$others->otherinfo_4Desc.'  
+        <td width="29%" style="font-size:7pt; border-bottom:1px solid black;">   '.$others->otherinfo_4Desc.'
         </td>
     </tr>
     <tr>
         <td width="65%" style="font-size:7pt; border-right:1px solid black; border-left:1px solid black;  border-bottom:1px solid black; background-color:#C3BEBF;"></td>
-        <td width="35%" style="font-size:7pt; border-bottom:1px solid black;">  
+        <td width="35%" style="font-size:7pt; border-bottom:1px solid black;">
         </td>
     </tr>
     <tr>
@@ -1284,12 +1346,12 @@ class basicinfocontroller extends Controller
     </tr>
     <tr>
         <td  width="65%" style="font-size:7pt; border-right:1px solid black; border-left:1px solid black; background-color:#C3BEBF;"> </td>
-        <td width="15%" style="font-size:7pt;"> 
+        <td width="15%" style="font-size:7pt;">
         If YES, give details: </td>
-        <td width="18%" style="font-size:7pt; border-bottom:1px solid black;">'.$others->otherinfo_5ADesc.'</td>    
+        <td width="18%" style="font-size:7pt; border-bottom:1px solid black;">'.$others->otherinfo_5ADesc.'</td>
     </tr>
     <tr>
-   
+
         <td  width="65%" style="font-size:8pt; border-right:1px solid black; border-left:1px solid black; background-color:#C3BEBF;" >b. Have you resigned from the government service during the three(3)-month period before the last election to promote/actively campaign for national or local candidate? </td>
         <td width="10%" style="font-size:7pt; border-left:1px solid black;"> <input type="checkbox" checked="'.($others->otherinfo_5B=== 'Yes'? "true":"false").'" name="1" value="1">
         YES
@@ -1300,15 +1362,15 @@ class basicinfocontroller extends Controller
     </tr>
     <tr>
         <td  width="65%" style="font-size:7pt; border-left:1px solid black; border-right:1px solid black; background-color:#C3BEBF;"> </td>
-        <td width="15%" style="font-size:7pt;"> 
+        <td width="15%" style="font-size:7pt;">
         If YES, give details: </td>
-        <td width="18%" style="font-size:7pt; border-bottom:1px solid black;"> '.$others->otherinfo_5BDesc.' </td>    
-            
+        <td width="18%" style="font-size:7pt; border-bottom:1px solid black;"> '.$others->otherinfo_5BDesc.' </td>
+
     </tr>
-    
+
     <tr>
         <td width="65%" style="font-size:7pt; border-right:1px solid black; border-left:1px solid black;  border-bottom:1px solid black; background-color:#C3BEBF;"></td>
-        <td width="35%" style="font-size:7pt; border-bottom:1px solid black;">  
+        <td width="35%" style="font-size:7pt; border-bottom:1px solid black;">
         </td>
     </tr>
     <tr>
@@ -1322,25 +1384,25 @@ class basicinfocontroller extends Controller
         </tr>
     <tr>
         <td  width="65%" style="font-size:7pt; border-right:1px solid black; border-left:1px solid black; background-color:#C3BEBF; border-right:1px solid black;"> </td>
-        <td width="20%" style="font-size:7pt;"> 
+        <td width="20%" style="font-size:7pt;">
         If YES, give details (country);
-        </td>  
+        </td>
     </tr>
     <tr>
         <td  width="65%" style="font-size:7pt; border-right:1px solid black; border-left:1px solid black; background-color:#C3BEBF;"> </td>
         <td width="5%" style="border-left;1px solid black;"> </td>
-        <td width="29%" style="font-size:7pt; border-bottom:1px solid black;"> '.$others->otherinfo_6Desc.'      
+        <td width="29%" style="font-size:7pt; border-bottom:1px solid black;"> '.$others->otherinfo_6Desc.'
         </td>
     </tr>
     <tr>
         <td width="65%" style="font-size:7pt; border-right:1px solid black; border-left:1px solid black;  border-bottom:1px solid black; background-color:#C3BEBF;"></td>
-        <td width="35%" style="font-size:7pt; border-bottom:1px solid black;">  
+        <td width="35%" style="font-size:7pt; border-bottom:1px solid black;">
         </td>
     </tr>
     <tr>
         <td  width="65%" style="font-size:8pt; border-right:1px solid black; border-left:1px solid black; background-color:#C3BEBF;" >40. Pursuant to: (a) Indigenous Peoples Act (RA 8371); (b) Magna Carta for Disabled Persons (RA 7277); and (c) Solo Parents Welfare Act of 2000 (RA 8972), please answer the following items:</td>
     </tr>
-    
+
         <tr>
 
             <td  width="65%" style="font-size:8pt;  border-right:1px solid black; border-left:1px solid black; background-color:#C3BEBF;">a. Are you a member of any indigenous group</td>
@@ -1353,10 +1415,10 @@ class basicinfocontroller extends Controller
         </tr>
         <tr>
             <td  width="65%" style="font-size:7pt; border-right:1px solid black; border-left:1px solid black; background-color:#C3BEBF;"> </td>
-            <td width="15%" style="font-size:7pt;"> 
+            <td width="15%" style="font-size:7pt;">
             If YES, give details: </td>
-            <td width="18%" style="font-size:7pt; border-bottom:1px solid black;"> '.$others->otherinfo_7ADesc.' </td>    
-                
+            <td width="18%" style="font-size:7pt; border-bottom:1px solid black;"> '.$others->otherinfo_7ADesc.' </td>
+
         </tr>
 
         <tr>
@@ -1371,10 +1433,10 @@ class basicinfocontroller extends Controller
         </tr>
         <tr>
             <td  width="65%" style="font-size:7pt; border-right:1px solid black; border-left:1px solid black; background-color:#C3BEBF;"> </td>
-            <td width="15%" style="font-size:7pt;"> 
+            <td width="15%" style="font-size:7pt;">
             If YES, give details: </td>
-            <td width="18%" style="font-size:7pt; border-bottom:1px solid black;"> '.$others->otherinfo_7BDesc.' </td>    
-                
+            <td width="18%" style="font-size:7pt; border-bottom:1px solid black;"> '.$others->otherinfo_7BDesc.' </td>
+
         </tr>
 
         <tr>
@@ -1389,19 +1451,19 @@ class basicinfocontroller extends Controller
     </tr>
     <tr>
         <td  width="65%" style="font-size:7pt; border-right:1px solid black; border-left:1px solid black; background-color:#C3BEBF;"> </td>
-        <td width="15%" style="font-size:7pt;"> 
+        <td width="15%" style="font-size:7pt;">
         If YES, give details: </td>
-        <td width="18%" style="font-size:7pt; border-bottom:1px solid black;"> '.$others->otherinfo_7CDesc.' </td>    
-            
+        <td width="18%" style="font-size:7pt; border-bottom:1px solid black;"> '.$others->otherinfo_7CDesc.' </td>
+
     </tr>
 
 
         <tr>
             <td width="65%" style="font-size:7pt; border-right:1px solid black; border-left:1px solid black;  border-bottom:1px solid black; background-color:#C3BEBF;"></td>
-            <td width="35%" style="font-size:7pt; border-bottom:1px solid black;">  
+            <td width="35%" style="font-size:7pt; border-bottom:1px solid black;">
             </td>
         </tr>
-        </table> 
+        </table>
         <table width="100%" style="border-right:1px solid black;">
          <tr>
              <td width="15%" height="15px" style="font-size:8pt; ;border-left:1px solid black;border-bottom:1px solid black; background-color:#C3BEBF;">41. REFERENCES</td>
@@ -1414,7 +1476,7 @@ class basicinfocontroller extends Controller
              <td width="27%" height="10px" style="font-size:8pt; border-left:1px solid black; border-right:1px solid black; border-bottom:1px solid black; background-color:#C3BEBF;" align="center"> <b><br/>NAME</b></td>
              <td width="28%" style="font-size:7pt; border-right:1px solid black; border-bottom:1px solid black; background-color:#C3BEBF;" align="center"><b><br/>ADDRESS</b></td>
              <td width="20%" style="font-size:7pt; border-right:1px solid black; border-bottom:1px solid black; background-color:#C3BEBF;" align="center"><b><br/>TEL.NO.</b></td>
-                 
+
              <td width="3%"  style="font-size:7pt; border-right:1px solid black; "> </td>
              <td width="20%"  style="font-size:7pt;  border-right:1px solid black; border-top:1px solid black;"> ID picture taken within the last 6 months 3.5cm. x.4.5cm. <br/> (passport size) </td>
              <td width="2%"  style="font-size:7pt; border-right:1px solid black; border-left:1px solid black;"> </td>
@@ -1423,30 +1485,30 @@ class basicinfocontroller extends Controller
           <td width="27%"  style="font-size:8pt; border-left:1px solid black; border-right:1px solid black; border-bottom:1px solid black; " align="center"> '.$ref1Name.'</td>
           <td width="28%"  style="font-size:7pt; border-right:1px solid black; border-bottom:1px solid black; " align="center"> '.$ref1Address.'</td>
           <td width="20%"  style="font-size:7pt; border-right:1px solid black; border-bottom:1px solid black; " align="center"> '.$ref1Tele.' </td>
-                 
+
              <td width="3%"  style="font-size:7pt; border-right:1px solid black; "> </td>
              <td width="20%"  style="font-size:7pt; border-right:1px solid black; " align="center"></td>
-             <td width="2%"  style="font-size:7pt; border-right:1px solid black;"> </td>         
+             <td width="2%"  style="font-size:7pt; border-right:1px solid black;"> </td>
           </tr>
           <tr>
           <td width="27%"  style="font-size:8pt; border-left:1px solid black; border-right:1px solid black; border-bottom:1px solid black; " align="center"> '.$ref2Name.'</td>
           <td width="28%"  style="font-size:7pt; border-right:1px solid black; border-bottom:1px solid black; " align="center"> '.$ref2Address.'</td>
           <td width="20%"  style="font-size:7pt; border-right:1px solid black; border-bottom:1px solid black; " align="center"> '.$ref2Tele.' </td>
-                 
+
              <td width="3%"  style="font-size:7pt; border-right:1px solid black; "> </td>
              <td width="20%"  style="font-size:7pt; border-right:1px solid black; " align="center"> With full and handwritten name</td>
-             <td width="2%"  style="font-size:7pt; border-right:1px solid black;"> </td>         
+             <td width="2%"  style="font-size:7pt; border-right:1px solid black;"> </td>
           </tr>
           <tr>
           <td width="27%"  style="font-size:8pt; border-left:1px solid black; border-right:1px solid black; border-bottom:1px solid black; " align="center"> '.$ref3Name.'</td>
           <td width="28%"  style="font-size:7pt; border-right:1px solid black; border-bottom:1px solid black; " align="center"> '.$ref3Address.'</td>
           <td width="20%"  style="font-size:7pt; border-right:1px solid black; border-bottom:1px solid black; " align="center"> '.$ref3Tele.' </td>
-                 
+
              <td width="3%"  style="font-size:7pt; border-right:1px solid black; "> </td>
              <td width="20%"  style="font-size:6pt; border-right:1px solid black; " align="center"> tag and signature over printed name </td>
-             <td width="2%"  style="font-size:7pt; border-right:1px solid black;"> </td>         
+             <td width="2%"  style="font-size:7pt; border-right:1px solid black;"> </td>
           </tr>
-         
+
           <tr>
              <td width="75%"  style="border-left:1px solid black;  border-right:1px solid black;"> </td>
              <td width="3%" style="border-left:1px solid black; border-right:1px solid black;"> </td>
@@ -1468,45 +1530,45 @@ class basicinfocontroller extends Controller
              <td width="3%"> </td>
              <td width="20%" style="font-size:8pt;" align="center"> PHOTO </td>
              <td width="2%"> </td>
-          
+
           </tr>
           <tr>
              <td width="40%" style="font-size:6pt; border-left:1px solid black; border-right:1px solid black; background-color:#C3BEBF;"> Government Issued ID (i.e.Passport, GSIS, SSS, PRC, Drivers License, etc.) </td>
              <td width="1%"> </td>
              <td width="34%" style="border-right:1px solid black; border-left:1px solid black; "> </td>
              <td width="2%"> </td>
-             <td width="22%" style="border-right:1px solid black; border-left:1px solid black; border-top:1px solid black;" align="center"></td>   
+             <td width="22%" style="border-right:1px solid black; border-left:1px solid black; border-top:1px solid black;" align="center"></td>
           </tr>
           <tr>
              <td width="40%" style="font-size:7pt; border-left:1px solid black; border-right:1px solid black; border-bottom:1px solid black; background-color:#C3BEBF;"> PLEASE INDICATE ID Number and Date of Issuance </td>
              <td width="1%"> </td>
              <td width="34%" style="border-right:1px solid black; border-left:1px solid black;"> </td>
              <td width="2%"> </td>
-             <td width="22%" style="border-right:1px solid black; border-left:1px solid black;" align="center"></td>   
+             <td width="22%" style="border-right:1px solid black; border-left:1px solid black;" align="center"></td>
          </tr>
          <tr>
              <td width="15%" style="font-size:7pt; border-left:1px solid black; border-right:1px solid black; border-bottom:1px solid black;"> Government Issued ID: </td>
-             <td width="25%"  style="border-right:1px solid black; border-bottom:1px solid black;" > </td>
+             <td width="25%"  style="border-right:1px solid black; border-bottom:1px solid black;" >'.$basic->government_ID.'</td>
              <td width="1%"> </td>
              <td width="34%" style="font-size:7pt; border-right:1px solid black; background-color:#C3BEBF; border-left:1px solid black; border-bottom:1px solid black;  border-top:1px solid black;" align="center"> SIGNATURE (Sign inside the box) </td>
              <td width="2%"> </td>
-             <td width="22%" style="border-right:1px solid black; border-left:1px solid black;" align="center"></td>   
+             <td width="22%" style="border-right:1px solid black; border-left:1px solid black;" align="center"></td>
          </tr>
          <tr>
              <td width="15%" style="font-size:6pt; border-left:1px solid black; border-right:1px solid black; border-bottom:1px solid black;"> ID/License/Passport No.: </td>
-             <td width="25%"  style="border-right:1px solid black; border-bottom:1px solid black;" > </td>
+             <td width="25%"  style="border-right:1px solid black; border-bottom:1px solid black;" >'.$basic->ID_License_Passport.'</td>
              <td width="1%"> </td>
              <td width="34%" style="font-size:6pt; border-right:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-top:1px solid black;" align="center"> </td>
              <td width="2%"> </td>
-             <td width="22%" style="border-right:1px solid black; border-left:1px solid black;" align="center"></td>   
+             <td width="22%" style="border-right:1px solid black; border-left:1px solid black;" align="center"></td>
          </tr>
          <tr>
              <td width="15%" style="font-size:7pt; border-left:1px solid black; border-right:1px solid black; border-bottom:1px solid black;">Date/Place of Issuance: </td>
-             <td width="25%"  style="border-right:1px solid black; border-bottom:1px solid black;" > </td>
+             <td width="25%"  style="border-right:1px solid black; border-bottom:1px solid black;" >'.$basic->Date_Place_Issuance.'</td>
              <td width="1%"> </td>
              <td width="34%" style="font-size:7pt; background-color:#C3BEBF; border-right:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-top:1px solid black;" align="center"> Date Accomplished </td>
              <td width="2%"> </td>
-             <td width="22%" style="font-size:7pt; border-right:1px solid black; border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; background-color:#C3BEBF;" align="center"> Right Thumbmark</td>   
+             <td width="22%" style="font-size:7pt; border-right:1px solid black; border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; background-color:#C3BEBF;" align="center"> Right Thumbmark</td>
          </tr>
          <tr>
              <br/>
@@ -1548,8 +1610,8 @@ class basicinfocontroller extends Controller
          <tr>
              <td width="100%" height="10px" style="font-size:7pt; border-bottom:1px solid black; border-left:1px solid black" align="right">CS FORM 212(Revised 2017), Page 4 of 4</td>
          </tr>
-                                                                                                                                                                 
-     
+
+
       </table>';
 
          PDF::SetTitle('PERSONAL DATA SHEET');
@@ -1574,11 +1636,11 @@ class basicinfocontroller extends Controller
              $response->header("Content-Type", $type);
              return $response;
          }
- 
+
      } catch (\Exception $e) {
          return response()->json(new JsonResponse(['errormsg' => $e, 'status' => 'error']));
      }
- 
+
     }
     public function print2(Request $request){
         try{
@@ -1590,7 +1652,7 @@ class basicinfocontroller extends Controller
             foreach ($basicinfo as $key => $value) {
               $basic=$value;
             }
-    
+
             $family = DB::table($this->hr_db . '.employees_familybackground')
             ->where('emp_number',Auth::user()->Employee_id)
             ->get();
@@ -1611,10 +1673,10 @@ class basicinfocontroller extends Controller
                    <td style="font-size:6pt;" align="center"> '.$value->cse_licenseno.' </td>
                    <td style="font-size:6pt;" align="center"> '.$value->cse_datereleased.' </td>
                </tr>';
-                   
+
                  }
                  if (count($civilservice)<15) {
-                    for ($i=count($civilservice); $i < 15; $i++) { 
+                    for ($i=count($civilservice); $i < 15; $i++) {
                       $civil.=' <tr>
                       <td height="13px" style="font-size:6pt;" align="center"></td>
                       <td style="font-size:6pt;" align="center">  </td>
@@ -1625,12 +1687,12 @@ class basicinfocontroller extends Controller
                   </tr> ';
                     }
                   }
-    
-    
+
+
             $education = DB::table($this->hr_db . '.employees_eduback')
-                 ->where('emp_number',Auth::user()->Employee_id)     
+                 ->where('emp_number',Auth::user()->Employee_id)
                  ->get();
-    
+
             $educ="";
             foreach ($education as $key => $value) {
               $educ.=' <tr>
@@ -1645,7 +1707,7 @@ class basicinfocontroller extends Controller
               </tr> ';
             }
             if (count($education)<6) {
-              for ($i=count($education); $i < 6; $i++) { 
+              for ($i=count($education); $i < 6; $i++) {
                 $educ.=' <tr>
                 <td height="20px" style="font-size:7pt; " align="center"></td>
                 <td style="font-size:7pt; "  align="center"></td>
@@ -1658,7 +1720,7 @@ class basicinfocontroller extends Controller
                 </tr> ';
               }
             }
-    
+
             $empWork = DB::table($this->hr_db . '.employees_workexperience')
             ->where('emp_number',Auth::user()->Employee_id)
             ->get();
@@ -1672,11 +1734,11 @@ class basicinfocontroller extends Controller
               <td style="font-size:6pt;" align="center"> '.$value->workexp_monthlysal.' </td>
               <td style="font-size:6pt;" align="center"> '.$value->workexp_salgrade.' </td>
               <td style="font-size:6pt;" align="center"> '.$value->workexp_statofemployment.' </td>
-              <td style="font-size:6pt;" align="center"> '.$value->workexp_govser.' </td>            
+              <td style="font-size:6pt;" align="center"> '.$value->workexp_govser.' </td>
           </tr> ';
             }
             if (count($empWork)<9) {
-                for ($i=count($empWork); $i < 9; $i++) { 
+                for ($i=count($empWork); $i < 9; $i++) {
                   $employment.=' <tr>
                   <td height="13px" style="font-size:6pt;" align="center"></td>
                   <td style="font-size:6pt;" align="center">  </td>
@@ -1685,11 +1747,11 @@ class basicinfocontroller extends Controller
                   <td style="font-size:6pt;" align="center">  </td>
                   <td style="font-size:6pt;" align="center">  </td>
                   <td style="font-size:6pt;" align="center">  </td>
-                  <td style="font-size:6pt;" align="center">  </td>            
+                  <td style="font-size:6pt;" align="center">  </td>
               </tr> ';
                 }
               }
-    
+
               $volwork = DB::table($this->hr_db . '.employees_voluntarilywork')
               // ->join($this->hr_db .'.employee_information','employee_information.PPID','employees.SysPK_Empl')
                    ->where('emp_number',Auth::user()->Employee_id)
@@ -1703,21 +1765,21 @@ class basicinfocontroller extends Controller
                      <td style="font-size:6pt;" align="center"> '.$value->dateto.' </td>
                      <td style="font-size:6pt;" align="center"> '.$value->No_ofHours.' </td>
                      <td style="font-size:6pt;" align="center"> '.$value->position.' </td>
-                               
+
                  </tr> ';
                    }
                    if (count($volwork)<9) {
-                    for ($i=count($volwork); $i < 9; $i++) { 
+                    for ($i=count($volwork); $i < 9; $i++) {
                       $vwork.='  <tr>
                       <td height="13px" style="font-size:6pt;" align="center"> </td>
                       <td style="font-size:6pt;" align="center">  </td>
                       <td style="font-size:6pt;" align="center">  </td>
                       <td style="font-size:6pt;" align="center">  </td>
-                      <td style="font-size:6pt;" align="center">  </td>         
+                      <td style="font-size:6pt;" align="center">  </td>
                   </tr> ';
                     }
                   }
-    
+
                   $training = DB::table($this->hr_db . '.employees_trainingprogram')
                        ->where('emp_number',Auth::user()->Employee_id)
                        ->get();
@@ -1733,7 +1795,7 @@ class basicinfocontroller extends Controller
                      </tr>   ';
                        }
                        if (count($training)<7) {
-                        for ($i=count($training); $i < 7; $i++) { 
+                        for ($i=count($training); $i < 7; $i++) {
                           $train.='  <tr>
                           <td height="13px" style="font-size:6pt;" align="center"> </td>
                           <td style="font-size:6pt;" align="center">  </td>
@@ -1741,12 +1803,12 @@ class basicinfocontroller extends Controller
                           <td style="font-size:6pt;" align="center">  </td>
                           <td style="font-size:6pt;" align="center">  </td>
                           <td style="font-size:6pt;" align="center">  </td>
-                                   
+
                       </tr> ';
                         }
                       }
-    
-                      
+
+
                       $skillsH = DB::table($this->hr_db . '.employees_skillshobbies')
                         ->where('emp_number',Auth::user()->Employee_id)
                         ->get();
@@ -1755,35 +1817,35 @@ class basicinfocontroller extends Controller
                          $skills.='  <tr>
                          <td rowspan="1" style="font-size:7pt;" align="center"> '.$value->skills_hobbies.' </td>
                          <td rowspan="2" style="font-size:6pt;" align="center"> '.$value->distinction_recognition.' </td>
-                         <td style="font-size:7pt;" align="center"> '.$value->membership_org.' </td>   
+                         <td style="font-size:7pt;" align="center"> '.$value->membership_org.' </td>
                      </tr>  ';
                        }
                        if (count($skillsH)<4) {
-                        for ($i=count($skillsH); $i < 4; $i++) { 
+                        for ($i=count($skillsH); $i < 4; $i++) {
                           $skills.='  <tr>
                           <td height="13px" style="font-size:6pt;" align="center"> </td>
                           <td style="font-size:6pt;" align="center">  </td>
                           <td style="font-size:6pt;" align="center">  </td>
                           <td style="font-size:6pt;" align="center">  </td>
-                          <td style="font-size:6pt;" align="center">  </td>         
+                          <td style="font-size:6pt;" align="center">  </td>
                       </tr> ';
                         }
                       }
-    
-    
-    
+
+
+
          $Template =' <table width="100%" style="border-left:1px solid black; border-top:1px solid black; border-right:1px solid black;">
          <tr>
              <td  style="font-size:8pt"><b> CS Form No.212 </b></td>
-            
-             
+
+
          </tr>
          <tr>
              <td  style="font-size:8pt"><b> Revised 2017 </b></td>
          </tr>
          <tr>
              <td width="100%" align="center"  style="font-size:14pt"><b> PERSONAL DATA SHEET </b> </td>
-     
+
          </tr>
          <tr>
              <td width="100%" align="center" style="font-size:6pt"> WARNING: Any misrepresentation made in the Personal Data Sheet and the Work Experience Sheet shall cause the filling of administrative/criminal case/s against the person concerned </td>
@@ -1793,26 +1855,26 @@ class basicinfocontroller extends Controller
          </tr>
          <table width="100%" style="border-bottom:1px solid black">
          <tr>
-         
+
              <td width="20%" style="font-size:6pt; border-left:1px solid black;"> Print legibly. Tick appropriate boxez ( </td>
              <td width="50%" style="font-size:6pt">
              <input type="checkbox" check="true" name="1" value="1">
-              ) and use separate sheet if necessary. Indicate N/A if not applicable. DO NOT ABBREVIATE.    
+              ) and use separate sheet if necessary. Indicate N/A if not applicable. DO NOT ABBREVIATE.
               </td>
               <td width="10%" style="font-size:7pt; border-left:1px solid black; border-top:1px solid black; border-bottom:1px solid black; border-right:1px solid black;"> 1. CS ID No.</td>
               <td width="20%" style="font-size:5pt; border-top:1px solid black; border-right:1px solid black; border-bottom:1px solid black;" align="right"> (Do not fill up. For CSC use only)</td>
          </tr>
          </table>
-         <tr>    
+         <tr>
              <td height="20px" width="100%" style="font-size:12pt; background-color:grey; border-left:1px solid black; border-top:1px solid black; border-bottom:1px solid black; border-right:1px solid black; color:white; " align="left"> I. PERSONAL INFORMATION</td>
          </tr>
          <table width="100%" cellpadding="4">
              <tr>
                  <td height="15px" width="15%" align="center" style="font-size:8pt;border-left:1px solid black; border-right:1px solid black; border-top:1px solid black; background-color:#C3BEBF; ">2. SURNAME </td>
                  <td width="85%" style="font-size:8pt; border-right:1px solid black; border-bottom:1px solid black;">'.$basic->LastName_Empl.'</td>
-             </tr>  
+             </tr>
              <tr>
-             <td height="15px" width="15%" align="center" style="font-size:8pt;border-left:1px solid black; border-right:1px solid black; background-color:#C3BEBF;"> FIRST NAME </td>   
+             <td height="15px" width="15%" align="center" style="font-size:8pt;border-left:1px solid black; border-right:1px solid black; background-color:#C3BEBF;"> FIRST NAME </td>
              <td height="15px" width="60%" style="font-size:8pt; border-right:1px solid black; border-bottom:1px solid black;"> '.$basic->FirstName_Empl.' </td>
                  <td height="15px" width="25%" style="font-size:6pt;border-right:1px solid black; background-color:#C3BEBF; border-bottom:1px solid black; "> NAME EXTENSION(JR.,SR.)</td>
              </tr>
@@ -1820,19 +1882,19 @@ class basicinfocontroller extends Controller
                  <td height="15px" width="15%" align="center" style="font-size:8pt;border-left:1px solid black; border-right:1px solid black;border-bottom:1px solid black; background-color:#C3BEBF;"> MIDDLE NAME </td>
                  <td height="15px" width="85%" style="font-size:8pt; border-right:1px solid black; border-bottom:1px solid black;"> '.$basic->MiddleName_Empl.' </td>
                  </tr>
-     
+
          </table>
-             
+
                  <tr>
-                     
+
                      <td height="22px" width="15%" style="font-size:7pt; border-right:1px solid black; border-bottom:1px solid black; background-color:#C3BEBF; border-left:1px solid black;"> 3. DATE OF BIRTH (mm/dd/yyyy) </td>
                      <td width="24%" style="font-size:7pt; border-right:1px solid black; border-bottom:1px solid black;"> '.$basic->BirthDate_Empl.' </td>
                      <td width="25%" style="font-size:7pt; border-right:1px solid black; background-color:#C3BEBF;"> 16. CITIZENSHIP</td>
                      <td width="10%" style="font-size:7pt">
-                     <input type="checkbox" check="true" name="1" value="1"> Filipino   
+                     <input type="checkbox" check="true" name="1" value="1"> Filipino
                      </td>
                      <td width="30%" style="font-size:6pt">
-                     <input type="checkbox" check="true" name="1" value="1"> Dual Citizenship   
+                     <input type="checkbox" check="true" name="1" value="1"> Dual Citizenship
                      </td>
                  </tr>
                  <tr>
@@ -1840,11 +1902,11 @@ class basicinfocontroller extends Controller
                      <td width="24%" style="font-size:7pt; border-right:1px solid black; border-bottom:1px solid black;"> '.$basic->birthplace.' </td>
                      <td width="25%" style="font-size:7pt; border-right:1px solid black; background-color:#C3BEBF;" align="center"> If holder of dual citizenship, <br> please indicate the details</td>
                      <td width="10%"> </td>
-                     <td width="12%" style="font-size:6pt"> 
+                     <td width="12%" style="font-size:6pt">
                      <input type="checkbox" check="true" name="1" value="1"> by birth  <br> Pls. indicate country:
                      </td>
                      <td width="15%" style="font-size:6pt">
-                     <input type="checkbox" check="true" name="1" value="1"> by naturalization 
+                     <input type="checkbox" check="true" name="1" value="1"> by naturalization
                      </td>
                  </tr>
                  <tr>
@@ -1858,7 +1920,7 @@ class basicinfocontroller extends Controller
                      <td width="3%" style="font-size:7pt; border-bottom:1px solid black;  border-top:1px solid black;  border-left:1px solid black;"></td>
                   </tr>
                  <tr>
-                     <td style="font-size:7pt; border-right:1px solid black; background-color:#C3BEBF; border-left:1px solid black;"> CIVIL STATUS </td>              
+                     <td style="font-size:7pt; border-right:1px solid black; background-color:#C3BEBF; border-left:1px solid black;"> CIVIL STATUS </td>
                      <td width="12%" style="font-size:7pt;">
                          <input type="checkbox" checked="'.($basic->civilStatus=== 'Single'? "true":"false").'" name="1" value="1"> Single</td>
                      <td width="12%" style="font-size:7pt; border-right:1px solid black; ">
@@ -1869,16 +1931,16 @@ class basicinfocontroller extends Controller
                       <td width="16.5%" style="font-size:6pt;    "> '.$basic->RStreet.' </td>
                  </tr>
                  <tr>
-                    <td  style="font-size:7pt; border-right:1px solid black;  background-color:#C3BEBF; border-left:1px solid black; "> </td>        
+                    <td  style="font-size:7pt; border-right:1px solid black;  background-color:#C3BEBF; border-left:1px solid black; "> </td>
                     <td width="24%" style="font-size:7pt;  border-right:1px solid black; "></td>
                     <td width="17%" style="font-size:7pt; border-right:1px solid black; background-color:#C3BEBF;">ADDRESS</td>
                     <td width="3%" style="font-size:7pt; border-bottom:1px solid black;"></td>
                     <td width="24%" style="font-size:6pt; border-bottom:1px solid black;">House/Block/Lot no.</td>
                     <td width="17%" style="font-size:6pt; border-bottom:1px solid black; "> Street</td>
                 </tr>
-                
+
                 <tr>
-                     <td  style="font-size:7pt; border-right:1px solid black; background-color:#C3BEBF; border-left:1px solid black;"></td>        
+                     <td  style="font-size:7pt; border-right:1px solid black; background-color:#C3BEBF; border-left:1px solid black;"></td>
                      <td width="12%" style="font-size:7pt;">
                      <input type="checkbox" checked="'.($basic->civilStatus=== 'Widowed'? "true":"false").'" name="1" value="1"> Widowed</td>
                      <td width="12%" style="font-size:7pt; border-right:1px solid black; ">
@@ -1889,7 +1951,7 @@ class basicinfocontroller extends Controller
                      <td width="17%" style="font-size:6pt;  ">  <b> '.$basic->RBrgy.' </b></td>
                 </tr>
                 <tr>
-                     <td  style="font-size:7pt; border-right:1px solid black;background-color:#C3BEBF; border-left:1px solid black;"></td>        
+                     <td  style="font-size:7pt; border-right:1px solid black;background-color:#C3BEBF; border-left:1px solid black;"></td>
                      <td width="12%" style="font-size:7pt;  ">
                      </td>
                      <td width="12%" style="font-size:7pt; border-right:1px solid black; ">
@@ -1900,7 +1962,7 @@ class basicinfocontroller extends Controller
                      <td width="17%" style="font-size:6pt; border-bottom:1px solid black;  "> Barangay</td>
                  </tr>
                 <tr>
-                     <td  style="font-size:7pt; border-right:1px solid black; border-bottom:1px solid black; background-color:#C3BEBF; border-left:1px solid black;"></td>        
+                     <td  style="font-size:7pt; border-right:1px solid black; border-bottom:1px solid black; background-color:#C3BEBF; border-left:1px solid black;"></td>
                      <td width="24%" style="font-size:7pt;  border-right:1px solid black; border-bottom:1px solid black;">
                      <input type="checkbox" checked="'.($basic->civilStatus=== 'Other/s'? "true":"false").'" name="1" value="1"> Other/s:</td>
                      <td width="17%" style="font-size:7pt; background-color:#C3BEBF; border-right:1px solid black; "></td>
@@ -1909,7 +1971,7 @@ class basicinfocontroller extends Controller
                      <td  width="17%" style="font-size:6pt; "> <b> '.$basic->RProvince.'</b></td>
               </tr>
               <tr>
-                     <td  style="font-size:7pt; border-right:1px solid black; border-bottom:1px solid black;background-color:#C3BEBF; border-left:1px solid black; "> HEIGHT (m)</td>        
+                     <td  style="font-size:7pt; border-right:1px solid black; border-bottom:1px solid black;background-color:#C3BEBF; border-left:1px solid black; "> HEIGHT (m)</td>
                      <td width="24%" style="font-size:7pt;  border-right:1px solid black; border-bottom:1px solid black;">'.$basic->height.'</td>
                      <td width="17%" style="font-size:7pt; border-right:1px solid black; background-color:#C3BEBF;"></td>
                      <td width="3%" style="font-size:7pt; border-bottom:1px solid black;"></td>
@@ -1917,14 +1979,14 @@ class basicinfocontroller extends Controller
                      <td width="17%" style="font-size:6pt; border-bottom:1px solid black; "> Province</td>
               </tr>
               <tr>
-                     <td  style="font-size:7pt; border-right:1px solid black; border-bottom:1px solid black; background-color:#C3BEBF; border-left:1px solid black; "> WEIGHT (kg)</td>        
+                     <td  style="font-size:7pt; border-right:1px solid black; border-bottom:1px solid black; background-color:#C3BEBF; border-left:1px solid black; "> WEIGHT (kg)</td>
                      <td width="24%" style="font-size:7pt;  border-right:1px solid black; border-bottom:1px solid black;">'.$basic->weight.'</td>
                      <td width="17%" style="font-size:7pt; border-right:1px solid black; border-bottom:1px solid black; background-color:#C3BEBF;" align="center"> ZIP CODE</td>
-                     <td width="44%" style="font-size:7pt; border-right:1px solid black; border-bottom:1px solid black;"> '.$basic->RZipcode.' </td>        
-                     
+                     <td width="44%" style="font-size:7pt; border-right:1px solid black; border-bottom:1px solid black;"> '.$basic->RZipcode.' </td>
+
              </tr>
              <tr>
-                 <td  style="font-size:7pt; border-right:1px solid black; border-bottom:1px solid black; background-color:#C3BEBF; border-left:1px solid black; "> <br> BLOOD TYPE</td>        
+                 <td  style="font-size:7pt; border-right:1px solid black; border-bottom:1px solid black; background-color:#C3BEBF; border-left:1px solid black; "> <br> BLOOD TYPE</td>
                  <td width="24%" style="font-size:7pt;  border-right:1px solid black; border-bottom:1px solid black;"> '.$basic->BloodType_Empl.' </td>
                  <td width="17%" style="font-size:7pt; border-right:1px solid black; background-color:#C3BEBF;">18. PERMANENT</td>
                  <td width="3%" style="font-size:7pt; "></td>
@@ -1932,7 +1994,7 @@ class basicinfocontroller extends Controller
                  <td width="17%" style="font-size:6pt;  "><b> '.$basic->PStreet.' </b></td>
              </tr>
              <tr>
-                    <td  style="font-size:7pt; border-right:1px solid black;  background-color:#C3BEBF; border-left:1px solid black; "> </td>        
+                    <td  style="font-size:7pt; border-right:1px solid black;  background-color:#C3BEBF; border-left:1px solid black; "> </td>
                     <td width="24%" style="font-size:7pt;  border-right:1px solid black; "></td>
                     <td width="17%" style="font-size:7pt; border-right:1px solid black; background-color:#C3BEBF;">ADDRESS</td>
                     <td width="3%" style="font-size:7pt; border-bottom:1px solid black;"></td>
@@ -1940,16 +2002,16 @@ class basicinfocontroller extends Controller
                     <td width="17%" style="font-size:6pt; border-bottom:1px solid black; "> Street</td>
                 </tr>
              <tr>
-                 <td height="15px" style="font-size:7pt; border-right:1px solid black; border-bottom:1px solid black; background-color:#C3BEBF; border-left:1px solid black; "> <br> GSIS ID NO.</td>        
+                 <td height="15px" style="font-size:7pt; border-right:1px solid black; border-bottom:1px solid black; background-color:#C3BEBF; border-left:1px solid black; "> <br> GSIS ID NO.</td>
                  <td width="24%" style="font-size:7pt;  border-right:1px solid black; border-bottom:1px solid black; ">'.$basic->GSIS_Empl.'</td>
                  <td width="17%" style="font-size:7pt;background-color:#C3BEBF; border-right:1px solid black; "></td>
                  <td width="3%" style="font-size:7pt; border-left:1px solid black; "></td>
                  <td width="23%" style="font-size:6pt;  "> <b> '.$basic->PSubd_Village.' </b></td>
                  <td width="17%" style="font-size:6pt; "> <b> '.$basic->PBrgy.' </b></td>
              </tr>
-             
+
              <tr>
-                 <td  style="font-size:7pt; border-right:1px solid black; background-color:#C3BEBF; border-left:1px solid black;">PAG-IBIG ID NO.</td>        
+                 <td  style="font-size:7pt; border-right:1px solid black; background-color:#C3BEBF; border-left:1px solid black;">PAG-IBIG ID NO.</td>
                  <td width="24%" style="font-size:7pt;  border-right:1px solid black; ">'.$basic->pagibig_no.'</td>
                  <td width="17%" style="font-size:7pt;background-color:#C3BEBF; border-right:1px solid black; "></td>
                  <td width="3%" style="font-size:7pt; border-left:1px solid black; border-bottom:1px solid black; "></td>
@@ -1957,7 +2019,7 @@ class basicinfocontroller extends Controller
                  <td width="17%" style="font-size:6pt; border-bottom:1px solid black;  "> Barangay</td>
              </tr>
              <tr>
-                     <td  style="font-size:7pt; border-right:1px solid black; border-bottom:1px solid black; background-color:#C3BEBF; border-left:1px solid black;"></td>        
+                     <td  style="font-size:7pt; border-right:1px solid black; border-bottom:1px solid black; background-color:#C3BEBF; border-left:1px solid black;"></td>
                      <td width="24%" style="font-size:7pt;  border-right:1px solid black; border-bottom:1px solid black;"></td>
                      <td width="17%" style="font-size:7pt; background-color:#C3BEBF; border-right:1px solid black;   "></td>
                      <td  width="3%" style="font-size:7pt; border-left:1px solid black;  "></td>
@@ -1965,7 +2027,7 @@ class basicinfocontroller extends Controller
                      <td  width="17%" style="font-size:6pt; "> <b> '.$basic->PProvince.' </b></td>
               </tr>
              <tr>
-                 <td  style="font-size:7pt; border-right:1px solid black; background-color:#C3BEBF; border-left:1px solid black; "> PHILHEALTH NO.</td>        
+                 <td  style="font-size:7pt; border-right:1px solid black; background-color:#C3BEBF; border-left:1px solid black; "> PHILHEALTH NO.</td>
                  <td width="24%" style="font-size:7pt;  border-right:1px solid black; ">'.$basic->philhealth_no.'</td>
                  <td width="17%" style="font-size:7pt; border-right:1px solid black; background-color:#C3BEBF;"></td>
                  <td width="3%" style="font-size:7pt; border-bottom:1px solid black;"></td>
@@ -1973,11 +2035,11 @@ class basicinfocontroller extends Controller
                  <td width="17%" style="font-size:6pt; border-bottom:1px solid black; "> Province</td>
              </tr>
              <tr>
-                     <td  style="font-size:7pt; border-right:1px solid black; border-bottom:1px solid black; background-color:#C3BEBF; border-left:1px solid black; "></td>        
+                     <td  style="font-size:7pt; border-right:1px solid black; border-bottom:1px solid black; background-color:#C3BEBF; border-left:1px solid black; "></td>
                      <td width="24%" style="font-size:7pt;  border-right:1px solid black; border-bottom:1px solid black; "></td>
                      <td width="17%" style="font-size:7pt; border-right:1px solid black; border-bottom:1px solid black; background-color:#C3BEBF;" align="center"> ZIP CODE</td>
-                     <td width="44%" style="font-size:7pt; border-right:1px solid black; border-bottom:1px solid black;"> '.$basic->PZipcode.' </td>        
-                     
+                     <td width="44%" style="font-size:7pt; border-right:1px solid black; border-bottom:1px solid black;"> '.$basic->PZipcode.' </td>
+
              </tr>
              <tr>
                  <td width="15%" height="15px"  style="font-size:7pt; border-right:1px solid black; border-bottom:1px solid black; background-color:#C3BEBF; border-left:1px solid black; "> SSS NO. </td>
@@ -2004,7 +2066,7 @@ class basicinfocontroller extends Controller
                  <tr>
                      <td width="15%" height="15px"  style="font-size:6pt; border-right:1px solid black; border-left:1px solid black; background-color:#C3BEBF; ">22. SPOUSES SURNAME</td>
                      <td width="37%" style="font-size:7pt; border-right:1px solid black; border-bottom:1px solid black; ">'.$fam->spouse_surname.'</td>
-                     
+
                      <td width="26%" style="font-size:6pt; border-right:1px solid black; border-bottom:1px solid black;background-color:#C3BEBF;"> 23. NAME OF CHILD (Write full name and list all) </td>
                      <td width="22%" style="font-size:6pt; border-right:1px solid black; border-bottom:1px solid black; background-color:#C3BEBF;" align="center"> DATE OF BIRTH (mm/dd/yyyy)</td>
                  </tr>
@@ -2018,88 +2080,88 @@ class basicinfocontroller extends Controller
                  <tr>
                      <td width="15%" height="15px"  style="font-size:6pt; border-right:1px solid black; border-bottom:1px solid black;  border-left:1px solid black; background-color:#C3BEBF; "> MIDDLE NAME</td>
                      <td width="37%" style="font-size:7pt; border-right:1px solid black; border-bottom:1px solid black; ">'.$fam->spouse_middlename.'</td>
-                     
+
                      <td width="26%" style="font-size:6pt; border-bottom:1px solid black  "> </td>
                      <td width="22%" style="font-size:6pt; border-right:1px solid black; border-bottom:1px solid black "></td>
                  </tr>
                  <tr>
                      <td width="15%" height="15px"  style="font-size:6pt; border-right:1px solid black; border-bottom:1px solid black;  border-left:1px solid black; background-color:#C3BEBF; ">  OCCUPATION</td>
                      <td width="37%" style="font-size:7pt; border-right:1px solid black; border-bottom:1px solid black; ">'.$fam->spouse_occupation.'</td>
-                     
+
                      <td width="26%" style="font-size:6pt; border-bottom:1px solid black  "> </td>
                      <td width="22%" style="font-size:6pt; border-right:1px solid black; border-bottom:1px solid black "></td>
                  </tr>
                  <tr>
                      <td width="15%" height="15px"  style="font-size:6pt; border-right:1px solid black; border-bottom:1px solid black;  border-left:1px solid black; background-color:#C3BEBF; ">  EMPLOYER/BUS NAME</td>
                      <td width="37%" style="font-size:7pt; border-right:1px solid black; border-bottom:1px solid black; ">'.$fam->spouse_employer.'</td>
-                     
+
                      <td width="26%" style="font-size:6pt; border-bottom:1px solid black  "> </td>
                      <td width="22%" style="font-size:6pt; border-right:1px solid black; border-bottom:1px solid black "></td>
                  </tr>
                  <tr>
                      <td width="15%" height="15px"  style="font-size:6pt; border-right:1px solid black; border-bottom:1px solid black;  border-left:1px solid black;background-color:#C3BEBF; ">  BUSINESS ADDRESS</td>
                      <td width="37%" style="font-size:7pt; border-right:1px solid black; border-bottom:1px solid black; ">'.$fam->spouse_employeradd.'</td>
-                     
+
                      <td width="26%" style="font-size:6pt; border-bottom:1px solid black  "> </td>
                      <td width="22%" style="font-size:6pt; border-right:1px solid black; border-bottom:1px solid black "></td>
                  </tr>
                  <tr>
                      <td width="15%" height="15px"  style="font-size:6pt; border-right:1px solid black; border-bottom:1px solid black;  border-left:1px solid black; background-color:#C3BEBF; ">  TELEPHONE NO.</td>
                      <td width="37%" style="font-size:7pt; border-right:1px solid black; border-bottom:1px solid black; ">'.$fam->spouse_Telno.'</td>
-                     
+
                      <td width="26%" style="font-size:6pt; border-bottom:1px solid black  "> </td>
                      <td width="22%" style="font-size:6pt; border-right:1px solid black; border-bottom:1px solid black "></td>
                  </tr>
                  <tr>
                      <td width="15%" height="15px"  style="font-size:6pt; border-right:1px solid black; border-left:1px solid black; background-color:#C3BEBF; ">  24. FATHERS SURNAME</td>
                      <td width="37%" style="font-size:7pt; border-right:1px solid black; border-bottom:1px solid black; ">'.$fam->father_surname.'</td>
-                     
+
                      <td width="26%" style="font-size:6pt; border-bottom:1px solid black  "> </td>
                      <td width="22%" style="font-size:6pt; border-right:1px solid black; border-bottom:1px solid black "></td>
                  </tr>
                  <tr>
                      <td width="15%" height="15px"  style="font-size:6pt; border-right:1px solid black; border-left:1px solid black;background-color:#C3BEBF; "> FIRST NAME</td>
                      <td width="20%" style="font-size:7pt; border-right:1px solid black; border-bottom:1px solid black; "> '.$fam->father_firstname.' </td>
-                     <td width="17%" style="font-size:6pt; border-right:1px solid black; border-bottom:1px solid black; background-color:#C3BEBF; ">NAME EXTENSION <br> (JR., SR.) </td>   
+                     <td width="17%" style="font-size:6pt; border-right:1px solid black; border-bottom:1px solid black; background-color:#C3BEBF; ">NAME EXTENSION <br> (JR., SR.) </td>
                      <td width="26%" style="font-size:6pt; border-bottom:1px solid black"> </td>
                      <td width="22%" style="font-size:6pt; border-right:1px solid black; border-bottom:1px solid black "> </td>
                   </tr>
              <tr>
                   <td width="15%" height="15px"  style="font-size:6pt; border-right:1px solid black; border-left:1px solid black; border-bottom:1px solid black; background-color:#C3BEBF; ">  MIDDLE NAME</td>
                   <td width="37%" style="font-size:7pt; border-right:1px solid black; border-bottom:1px solid black; ">'.$fam->father_middlename.'</td>
-                  
+
                   <td width="26%" style="font-size:6pt; border-bottom:1px solid black  "> </td>
                   <td width="22%" style="font-size:6pt; border-right:1px solid black; border-bottom:1px solid black "></td>
               </tr>
               <tr>
                      <td width="15%" height="15px"  style="font-size:6pt; border-right:1px solid black; border-left:1px solid black; background-color:#C3BEBF; ">  25. MOTHERS MAIDEN NAME</td>
                      <td width="37%" style="font-size:7pt; border-right:1px solid black; border-bottom:1px solid black; ">'.$fam->mother_surname.'</td>
-                     
+
                      <td width="26%" style="font-size:6pt; border-bottom:1px solid black  "> </td>
                      <td width="22%" style="font-size:6pt; border-right:1px solid black; border-bottom:1px solid black "></td>
                  </tr>
              <tr>
                   <td width="15%" height="15px"  style="font-size:7pt; border-right:1px solid black; border-left:1px solid black; background-color:#C3BEBF; ">  SURNAME</td>
                   <td width="37%" style="font-size:7pt; border-right:1px solid black; border-bottom:1px solid black; ">'.$fam->mother_surname.'</td>
-                  
+
                   <td width="26%" style="font-size:6pt; border-bottom:1px solid black  "> </td>
                   <td width="22%" style="font-size:6pt; border-right:1px solid black; border-bottom:1px solid black "></td>
               </tr>
               <tr>
                      <td width="15%" height="15px"  style="font-size:7pt; border-right:1px solid black; border-left:1px solid black; background-color:#C3BEBF; "> FIRST NAME</td>
-                     <td width="37%" style="font-size:7pt; border-right:1px solid black; border-bottom:1px solid black; "> '.$fam->mother_firstname.' </td> 
+                     <td width="37%" style="font-size:7pt; border-right:1px solid black; border-bottom:1px solid black; "> '.$fam->mother_firstname.' </td>
                      <td width="26%" style="font-size:6pt;"> </td>
                      <td width="22%" style="font-size:6pt; border-right:1px solid black; border-bottom:1px solid black "> </td>
              </tr>
              <tr>
                   <td width="15%" height="15px"  style="font-size:7pt; border-right:1px solid black; border-left:1px solid black; border-bottom:1px solid black; background-color:#C3BEBF; ">  MIDDLE NAME</td>
                   <td width="37%" style="font-size:7pt; border-right:1px solid black; border-bottom:1px solid black; ">'.$fam->mother_middlename.'</td>
-                  
+
                   <td width="48%" style="font-size:6pt; color:red; border-bottom:1px solid black; border-top:1px solid black; border-right:1px solid black; " align="center"> (Continue on separate sheet if necessary)</td>
-                  
+
               </tr>
              </table>
-     
+
              <table width="100%">
                  <tr>
                      <td width="100%" height="20px" style="font-size:12pt; background-color:grey; border-right:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-top:1px solid black; color:white;"> III. EDUCATIONAL BACKGROUND </td>
@@ -2113,25 +2175,25 @@ class basicinfocontroller extends Controller
                      <td  width="14%" rowspan="2" style="font-size:7pt; background-color:#C3BEBF; "  align="center"> <b> HIGHEST LEVEL/UNITS EARNED (if not graduated) </b></td>
                      <td  width="10%" rowspan="2" style="font-size:7pt; background-color:#C3BEBF;"  align="center"> <br/><br/><b> YEAR GRADUATED </b> </td>
                      <td  rowspan="2" style="font-size:7pt; background-color:#C3BEBF;"  align="center"> SCHOLARSHIP/ACADEMIC HONORS RECEIVED</td>
-           
+
                  </tr>
                      <tr>
                              <td height="15px" style="font-size:7pt; background-color:#C3BEBF; " align="center">From</td>
                              <td style="font-size:7pt; background-color:#C3BEBF; "  align="center"> TO </td>
                      </tr>
-     
+
                   '.$educ.'
-                
+
                  <tr>
                      <td width="100%" height="9px" style="font-size:6pt;  color:red" align="center"> (Continue on separate sheet if necessary) </td>
                  </tr>
-     
+
              </table>
-     
-     
+
+
              <table width="100%">
-               
-     
+
+
              <tr>
                  <td width="12%"  align="center" style="font-size:7pt; border-bottom:1px solid black;border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; background-color:#C3BEBF;">SIGNATURE</td>
                  <td width="43%"  style="font-size:6pt; border-bottom:1px solid black; border-top:1px solid black; border-left:1px solid black; border-right:1px solid black;"></td>
@@ -2139,52 +2201,52 @@ class basicinfocontroller extends Controller
                  <td width="33%" style="font-size:6pt; border-bottom:1px solid black; border-top:1px solid black; border-left:1px solid black; border-right:1px solid black;"></td>
              </tr>
              <tr>
-     
+
                  <td  width="100%" style="font-size:6pt; border-bottom:1px solid black; border-top:1px solid black; border-left:1px solid black; border-right:1px solid black;" align="right"> CS FORM 212 (Revised 2017), Page 1 of 4 </td>
-     
+
              </tr>
              <tr>
                  <td></td>
              </tr>
-             
-     
+
+
              </table>
-     
+
              <table width="100%" cellpadding="2">
-             
+
                  <tr>
-                 
+
                  <td width="100%" height="17px" style="font-size:8pt; color:white; background-color:grey; border-right:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-top:1px solid black;"> IV. CIVIL SERVICE ELIGIBLITY </td>
                  </tr>
                  <table width="100%" border="1">
                 <tr>
-                     
+
                      <td rowspan="2" width="30%" style="font-size:7pt; background-color:#C3BEBF;" align="center"> 27. CAREER SERVICE/ RA 1080 (BOARD/BAR) UNDER SPECIAL LAW/CES/CSEE</td>
                      <td rowspan="2" width="10%" style="font-size:7pt; background-color:#C3BEBF;" align="center"> RATING</td>
                      <td rowspan="2" width="10%" style="font-size:7pt; background-color:#C3BEBF;" align="center"> DATE OF EXAMINATION / CONFERMENT</td>
                      <td rowspan="2" width="30%" style="font-size:7pt; background-color:#C3BEBF;" align="center"> PLACE OF EXAMINATION / CONFERNMENT</td>
                      <td width="20%" colspan="2" style="font-size:7pt; background-color:#C3BEBF;" align="center"> LICENSE (if applicable)</td>
-                        
+
                  </tr>
                  <tr>
                      <td style="font-size:7pt; background-color:#C3BEBF;" align="center"> NUMBER </td>
                      <td style="font-size:6pt; background-color:#C3BEBF;" align="center"> DATE OF RELEASE </td>
                  </tr>
-    
+
                  '.$civil.'
-               
+
                  <tr>
                      <td height="13px" width="100%" style="font-size:6pt; color:red" align="center"> (Continue on separate sheet if necessary) </td>
                  </tr>
-                     </table>  
-     
+                     </table>
+
                  <table width="100%">
                      <tr>
                          <td width="100%" height="17px" style="font-size:8pt; color:white; background-color:grey; border-right:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-top:1px solid black;"> V. WORK EXPERIENCE (Include private employment. Start from your current work) </td>
                      </tr>
                      <table width="100%" border="1" cellpadding="2">
                      <tr>
-                     
+
                      <td colspan="2" width="18%" style="font-size:7pt; background-color:#C3BEBF;" align="center"> 28.  INCLUSIVE DATES (mm/dd/yyyy)</td>
                      <td rowspan="2" width="21%" style="font-size:7pt; background-color:#C3BEBF;" align="center"> POSITION TITLE <br/> (Write in full) </td>
                      <td rowspan="2" width="20%" style="font-size:7pt; background-color:#C3BEBF;" align="center"> DEPARTMENT / AGENCY / OFFICE COMPANY <br/> (Write in full)</td>
@@ -2192,15 +2254,15 @@ class basicinfocontroller extends Controller
                      <td width="10%" rowspan="2" style="font-size:7pt; background-color:#C3BEBF;" align="center"> SALARY GRADE & STEP INCREMENT (Format *00-0*)</td>
                      <td width="13%" rowspan="2" style="font-size:7pt; background-color:#C3BEBF;" align="center"> STATUS OF APPOINTMENT</td>
                      <td width="8%" rowspan="2" style="font-size:7pt; background-color:#C3BEBF;" align="center"> GOVT SERVICE (YES/NO)</td>
-                        
+
                  </tr>
                  <tr>
                      <td style="font-size:7pt; background-color:#C3BEBF;" align="center"> From </td>
                      <td style="font-size:7pt; background-color:#C3BEBF;" align="center"> TO </td>
                  </tr>
-    
+
                  '.$employment.'
-            
+
              <tr>
                  <td width="100%" height="10px" style="font-size:6pt; color:red" align="center"> (Continue on separate sheet if necessary)</td>
              </tr>
@@ -2213,9 +2275,9 @@ class basicinfocontroller extends Controller
              <tr>
                  <td width="100%" height="10px" style="font-size:6pt;" align="right">CC FORM 212 (Revised 2017), Page 2 of 4</td>
              </tr>
-     
+
                  </table>
-     
+
                  <table width="100%" cellpadding="2">
                      <tr>
                       <br/>
@@ -2243,64 +2305,64 @@ class basicinfocontroller extends Controller
                       <br/>
                       <br/>
                       <br/>
-    
-    
-    
+
+
+
                          <td width="100%" height="17px" style="font-size:8pt; color:white; background-color:grey; border-right:1px solid black; border-bottom:1px solid black; border-left:1px solid black; border-top:1px solid black;"> VI. VOLUNTARY WORK OR INVOLVEMENT IN CIVIC / NON-GOVERNMENT / PEOPLE/ VOLUNTARY ORGANIZATION/S </td>
                      </tr>
                      <table width="100%" border="1" cellpadding="2">
                      <tr>
-                     
+
                          <td rowspan="2" width="45%" style="font-size:7pt; background-color:#C3BEBF;" align="center"> 29.  NAME & ADDRESS OF ORGANIZATION <br/> (Write in full)</td>
                          <td colspan="2" width="21%" style="font-size:7pt; background-color:#C3BEBF;" align="center"> INCLUSIVE DATES <br/> (mm/dd/yyyy)</td>
                          <td rowspan="2" width="10%" style="font-size:7pt; background-color:#C3BEBF;" align="center"> NUMBER OF HOURS (Write in full)</td>
                          <td rowspan="2" width="24%" style="font-size:7pt; background-color:#C3BEBF;" align="center"> POSITION / NATURE OF WORK</td>
-                        
+
                      </tr>
                      <tr>
                          <td style="font-size:7pt; background-color:#C3BEBF;" align="center"> From </td>
                          <td style="font-size:7pt; background-color:#C3BEBF;" align="center"> TO </td>
                      </tr>
-                        
+
                      '.$vwork.'
-    
+
                      <tr>
                          <td width="100%" style="font-size:6pt; color:red" align="center"> (Continue on separate sheet if necessary) </td>
                      </tr>
-     
+
                      </table>
-     
-     
-                         
+
+
+
                          <table width="100%">
                          <tr>
-                         
-                    
-                         
+
+
+
                          <td width="100%" height="18px" style="font-size:10pt; color:white; background-color:grey; border-right:1px solid black; border-left:1px solid black; border-top:1px solid black;"> VII.LEARNING AND DEVELOPMENT (L&D) INTERENTIONS PROGRAMS ATTENDED </td>
-                            
+
                          </tr>
                          <tr>
                              <td style="font-size:7pt; color:white; background-color:grey; border-right:1px solid black; border-bottom:1px solid black; border-left:1px solid black;"> (Start from the most recent L & D/training program include only yhe relevant L&D/training taken for the last five (5) years for Division Chief/Executive/Managerial positions)</td>
                          </tr>
                          <table width="100%" border="1">
                          <tr>
-                         
+
                              <td width="38%" rowspan="2" style="font-size:7pt; background-color:#C3BEBF;" align="center"> 30. TITLE OF SEMINAR/CONFERENCE/WORKSHOP/SHORT COURSES <br/> (Write in full) </td>
                              <td width="17%" style="font-size:7pt; background-color:#C3BEBF;" align="center" colspan="2"> INCLUSIVE DATES OF ATTENDANCE <br/>(mm/dd/yyyy) </td>
                              <td width="10%" rowspan="2" style="font-size:7pt; background-color:#C3BEBF;" align="center"> <br/>NUMBER OF HOURS </td>
                              <td width="10%" rowspan="2" style="font-size:7pt; background-color:#C3BEBF;" align="center"> Type of  LD(Managerial/Supervisory/Tehnical etc.) </td>
                              <td width="25%" rowspan="2" style="font-size:7pt; background-color:#C3BEBF;" align="center"> CONDUCTED/ SPONSORED BY <br/> (write in full) </td>
-                            
-                      
+
+
                          </tr>
                              <tr>
                                  <td style="font-size:7pt; background-color:#C3BEBF;" align="center"> FROM </td>
                                  <td style="font-size:7pt; background-color:#C3BEBF;" align="center"> TO </td>
                              </tr>
-                            '.$training.' 
+                            '.$training.'
                          </table>
-     
+
                          <table width="100%" cellpadding="2" style="border-left:1px solid black; border-right:1px solid black; border-bottom:1px solid black;">
                              <tr>
                                  <td width="100%" height="150px" style="font-size:7pt;"></td>
@@ -2324,16 +2386,16 @@ class basicinfocontroller extends Controller
                              <tr>
                                  <td width="100%" height="15px" style="font-size:7pt; color:red" align="center"> (Continue on separate sheet if necessary)</td>
                              </tr>
-                             
+
                               <tr>
-                                 
+
                                      <td width="12%"  height="15px" align="center" style="font-size:7pt; border-bottom:1px solid black;border-top:1px solid black; border-left:1px solid black; border-right:1px solid black; background-color:#C3BEBF;">SIGNATURE</td>
                                      <td width="43%"  height="12px" style="font-size:6pt; border-bottom:1px solid black; border-top:1px solid black; border-left:1px solid black; border-right:1px solid black;"></td>
                                      <td width="12%" style="font-size:7pt; border-bottom:1px solid black; border-top:1px solid black; border-right:1px solid black; border-left:1px solid black; background-color:#C3BEBF; " align="center">DATE</td>
                                      <td width="33%" style="font-size:6pt; border-bottom:1px solid black; border-top:1px solid black; border-left:1px solid black; border-right:1px solid black;"></td>
                                  </tr>
                                  <tr>
-     
+
                                      <td  width="100%" style="font-size:6pt; border-bottom:1px solid black; border-top:1px solid black; border-left:1px solid black; border-right:1px solid black;" align="right"> CS FORM 212 (Revised 2017), Page 3 of 4 </td>
                                  </tr>
                              </table>
@@ -2350,10 +2412,10 @@ class basicinfocontroller extends Controller
                                  <td width="65%" style="font-size:7pt; border-right:1px solid black; border-left:1px solid black; background-color:#C3BEBF;"> 34. Are you related by consanguinity or affinity to the appointing or recommending authority or to the chief of bureau or office or the person you who has immediate supervision over you in the Office, Burueau of Departmentn  where you will be appointed,
                                  </td>
                                  <td width="10%" style="font-size:7pt;">
-        
+
                                  </td>
-                                 <td width="25%" style="font-size:7pt;"> 
-                                 
+                                 <td width="25%" style="font-size:7pt;">
+
                                  </td>
                              </tr>
                              <tr>
@@ -2376,24 +2438,24 @@ class basicinfocontroller extends Controller
                              </tr>
                          <tr>
                              <td  width="65%" style="font-size:7pt; border-left:1px solid black; border-right:1px solid black; background-color:#C3BEBF;"> </td>
-                             <td width="20%" style="font-size:7pt;"> 
+                             <td width="20%" style="font-size:7pt;">
                             If YES, give details;
-                             </td>  
+                             </td>
                          </tr>
                          <tr>
                              <td  width="65%" style="font-size:7pt; border-left:1px solid black; border-right:1px solid black; background-color:#C3BEBF;"> </td>
                              <td width="5%"> </td>
-                             <td width="29%" style="font-size:7pt; border-bottom:1px solid black;"> 
-                             
+                             <td width="29%" style="font-size:7pt; border-bottom:1px solid black;">
+
                           </td>
                       </tr>
                          <tr>
                              <td width="65%" style="font-size:7pt; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; background-color:#C3BEBF;"> </td>
-                             <td width="35%" style="font-size:7pt; border-left:1px solid black;border-bottom:1px solid black;"> 
+                             <td width="35%" style="font-size:7pt; border-left:1px solid black;border-bottom:1px solid black;">
                              </td>
                          </tr>
                          <tr>
-                         
+
                                  <td  width="65%" style="font-size:7pt; background-color:#C3BEBF; border-right:1px solid black; border-left:1px solid black;" >35.  a. Have you ever been found guilty of any administrative offense? </td>
                                  <td width="10%" style="font-size:7pt; border-left:1px solid black;"> <input type="checkbox" check="true" name="1" value="1">
                                  YES
@@ -2404,23 +2466,23 @@ class basicinfocontroller extends Controller
                          </tr>
                          <tr>
                              <td  width="65%" style="font-size:7pt; border-left:1px solid black; border-right:1px solid black; background-color:#C3BEBF;"> </td>
-                             <td width="20%" style="font-size:7pt;"> 
+                             <td width="20%" style="font-size:7pt;">
                              If YES, give details;
-                             </td>  
+                             </td>
                          </tr>
                          <tr>
                              <td  width="65%" style="font-size:7pt; border-left:1px solid black; border-right:1px solid black; background-color:#C3BEBF;"> </td>
                              <td width="5%" style="border-left;1px solid black;"> </td>
-                             <td width="29%" style="font-size:7pt; border-bottom:1px solid black;">      
+                             <td width="29%" style="font-size:7pt; border-bottom:1px solid black;">
                              </td>
                          </tr>
                          <tr>
                              <td width="65%" style="font-size:7pt; border-left:1px solid black; border-right:1px solid black; background-color:#C3BEBF;"></td>
-                             <td width="35%" style="font-size:7pt; border-bottom:1px solid black;">  
+                             <td width="35%" style="font-size:7pt; border-bottom:1px solid black;">
                              </td>
                          </tr>
                          <tr>
-                         
+
                                  <td  width="65%" style="font-size:7pt; border-left:1px solid black; background-color:#C3BEBF; border-right:1px solid black;" > b. Have you been criminally charged before any court?</td>
                                  <td width="10%" style="font-size:7pt; border-left:1px solid black;"> <input type="checkbox" check="true" name="1" value="1">
                                  YES
@@ -2431,30 +2493,28 @@ class basicinfocontroller extends Controller
                          </tr>
                          <tr>
                              <td  width="65%" style="font-size:7pt; border-left:1px solid black; border-right:1px solid black; background-color:#C3BEBF;"> </td>
-                             <td width="20%" style="font-size:7pt;"> 
+                             <td width="20%" style="font-size:7pt;">
                              If YES, give details;
-                             </td>  
+                             </td>
                          </tr>
                          <tr>
                              <td  width="65%" style="font-size:7pt; border-left:1px solid black; border-right:1px solid black; background-color:#C3BEBF;"> </td>
                              <td width="15%" style="border-left;1px solid black;font-size:7pt;" align="right"> Date Filed: </td>
-                             <td width="18%" style="font-size:7pt; border-bottom:1px solid black;">  3/29/2022 12:00:00 AM     
-                             </td>
+                             <td width="18%" style="font-size:7pt; border-bottom:1px solid black;"></td>
                          </tr>
                          <tr>
                              <td  width="65%" style="font-size:7pt; border-left:1px solid black; border-right:1px solid black; background-color:#C3BEBF;"> </td>
                              <td width="15%" style="border-left;1px solid black;font-size:7pt;" align="right">Status of Case/s:</td>
-                             <td width="18%" style="font-size:7pt; border-bottom:1px solid black;">      
-                             </td>
+                             <td width="18%" style="font-size:7pt; border-bottom:1px solid black;"></td>
                           </tr>
                           <tr>
                              <td width="65%" style="font-size:7pt; border-left:1px solid black; border-bottom:1px solid black; border-right:1px solid black; background-color:#C3BEBF;"> </td>
-                             <td width="35%" style="font-size:7pt; border-left:1px solid black;border-bottom:1px solid black;"> 
+                             <td width="35%" style="font-size:7pt; border-left:1px solid black;border-bottom:1px solid black;">
                              </td>
                          </tr>
                          <tr>
-                         
-                         
+
+
                          <td  width="65%" style="font-size:7pt; border-right:1px solid black; border-left:1px solid black; background-color:#C3BEBF; " >36. Have you ever been convicted of any crime or violation of any law, devree, ordinance or regulation by any court or tribunal </td>
                          <td width="10%" style="font-size:7pt; border-left:1px solid black;"> <input type="checkbox" check="true" name="1" value="1">
                          YES
@@ -2465,19 +2525,19 @@ class basicinfocontroller extends Controller
                  </tr>
                  <tr>
                      <td  width="65%" style="font-size:7pt; border-right:1px solid black; border-left:1px solid black; background-color:#C3BEBF;"> </td>
-                     <td width="20%" style="font-size:7pt;"> 
+                     <td width="20%" style="font-size:7pt;">
                      If YES, give details;
-                     </td>  
+                     </td>
                  </tr>
                  <tr>
                      <td  width="65%" style="font-size:7pt; border-right:1px solid black; border-left:1px solid black; background-color:#C3BEBF;"> </td>
                      <td width="5%" style="border-left;1px solid black;"> </td>
-                     <td width="29%" style="font-size:7pt; border-bottom:1px solid black;">      
+                     <td width="29%" style="font-size:7pt; border-bottom:1px solid black;">
                      </td>
                  </tr>
                  <tr>
                      <td width="65%" style="font-size:7pt; border-right:1px solid black; border-left:1px solid black;  border-bottom:1px solid black; background-color:#C3BEBF;"></td>
-                     <td width="35%" style="font-size:7pt; border-bottom:1px solid black;">  
+                     <td width="35%" style="font-size:7pt; border-bottom:1px solid black;">
                      </td>
                  </tr>
                  <tr>
@@ -2491,19 +2551,19 @@ class basicinfocontroller extends Controller
                  </tr>
                   <tr>
                      <td  width="65%" style="font-size:7pt; border-right:1px solid black; border-left:1px solid black; background-color:#C3BEBF;"> </td>
-                     <td width="20%" style="font-size:7pt;"> 
+                     <td width="20%" style="font-size:7pt;">
                      If YES, give details;
-                     </td>  
+                     </td>
                  </tr>
                  <tr>
                      <td  width="65%" style="font-size:7pt; border-right:1px solid black; border-left:1px solid black; background-color:#C3BEBF;"> </td>
                      <td width="5%" style="border-left;1px solid black;"> </td>
-                     <td width="29%" style="font-size:7pt; border-bottom:1px solid black;">      
+                     <td width="29%" style="font-size:7pt; border-bottom:1px solid black;">
                      </td>
                  </tr>
                  <tr>
                      <td width="65%" style="font-size:7pt; border-right:1px solid black; border-left:1px solid black;  border-bottom:1px solid black; background-color:#C3BEBF;"></td>
-                     <td width="35%" style="font-size:7pt; border-bottom:1px solid black;">  
+                     <td width="35%" style="font-size:7pt; border-bottom:1px solid black;">
                      </td>
                  </tr>
                  <tr>
@@ -2518,12 +2578,12 @@ class basicinfocontroller extends Controller
                  </tr>
                  <tr>
                      <td  width="65%" style="font-size:7pt; border-right:1px solid black; border-left:1px solid black; background-color:#C3BEBF;"> </td>
-                     <td width="15%" style="font-size:7pt;"> 
+                     <td width="15%" style="font-size:7pt;">
                      If YES, give details: </td>
-                     <td width="18%" style="font-size:7pt; border-bottom:1px solid black;"></td>    
+                     <td width="18%" style="font-size:7pt; border-bottom:1px solid black;"></td>
                  </tr>
                  <tr>
-                
+
                      <td  width="65%" style="font-size:7pt; border-right:1px solid black; border-left:1px solid black; background-color:#C3BEBF;" >b. Have you resigned from the government service during the three(3)-month period before the last election to promote/actively campaign for national or local candidate? </td>
                      <td width="10%" style="font-size:7pt; border-left:1px solid black;"> <input type="checkbox" check="true" name="1" value="1">
                      YES
@@ -2534,15 +2594,15 @@ class basicinfocontroller extends Controller
                  </tr>
                  <tr>
                      <td  width="65%" style="font-size:7pt; border-left:1px solid black; border-right:1px solid black; background-color:#C3BEBF;"> </td>
-                     <td width="15%" style="font-size:7pt;"> 
+                     <td width="15%" style="font-size:7pt;">
                      If YES, give details: </td>
-                     <td width="18%" style="font-size:7pt; border-bottom:1px solid black;"></td>    
-                         
+                     <td width="18%" style="font-size:7pt; border-bottom:1px solid black;"></td>
+
                  </tr>
-                 
+
                  <tr>
                      <td width="65%" style="font-size:7pt; border-right:1px solid black; border-left:1px solid black;  border-bottom:1px solid black; background-color:#C3BEBF;"></td>
-                     <td width="35%" style="font-size:7pt; border-bottom:1px solid black;">  
+                     <td width="35%" style="font-size:7pt; border-bottom:1px solid black;">
                      </td>
                  </tr>
                  <tr>
@@ -2556,19 +2616,19 @@ class basicinfocontroller extends Controller
                      </tr>
                  <tr>
                      <td  width="65%" style="font-size:7pt; border-right:1px solid black; border-left:1px solid black; background-color:#C3BEBF; border-right:1px solid black;"> </td>
-                     <td width="20%" style="font-size:7pt;"> 
+                     <td width="20%" style="font-size:7pt;">
                      If YES, give details (country);
-                     </td>  
+                     </td>
                  </tr>
                  <tr>
                      <td  width="65%" style="font-size:7pt; border-right:1px solid black; border-left:1px solid black; background-color:#C3BEBF;"> </td>
                      <td width="5%" style="border-left;1px solid black;"> </td>
-                     <td width="29%" style="font-size:7pt; border-bottom:1px solid black;">      
+                     <td width="29%" style="font-size:7pt; border-bottom:1px solid black;">
                      </td>
                  </tr>
                  <tr>
                      <td width="65%" style="font-size:7pt; border-right:1px solid black; border-left:1px solid black;  border-bottom:1px solid black; background-color:#C3BEBF;"></td>
-                     <td width="35%" style="font-size:7pt; border-bottom:1px solid black;">  
+                     <td width="35%" style="font-size:7pt; border-bottom:1px solid black;">
                      </td>
                  </tr>
                  <tr>
@@ -2582,12 +2642,12 @@ class basicinfocontroller extends Controller
              </tr>
              <tr>
                  <td  width="65%" style="font-size:7pt; border-right:1px solid black; border-left:1px solid black; background-color:#C3BEBF; "> </td>
-                 <td width="15%" style="font-size:7pt;"> 
+                 <td width="15%" style="font-size:7pt;">
                  If YES, give details: </td>
-                 <td width="18%" style="font-size:7pt; border-bottom:1px solid black;"></td>    
+                 <td width="18%" style="font-size:7pt; border-bottom:1px solid black;"></td>
              </tr>
              <tr>
-            
+
                  <td  width="65%" style="font-size:7pt;  border-right:1px solid black; border-left:1px solid black; background-color:#C3BEBF;">a. Are you a member of any indigenous group</td>
                  <td width="10%" style="font-size:7pt; border-left:1px solid black;"> <input type="checkbox" check="true" name="1" value="1">
                  YES
@@ -2598,14 +2658,14 @@ class basicinfocontroller extends Controller
              </tr>
              <tr>
                  <td  width="65%" style="font-size:7pt; border-right:1px solid black; border-left:1px solid black; background-color:#C3BEBF;"> </td>
-                 <td width="15%" style="font-size:7pt;"> 
+                 <td width="15%" style="font-size:7pt;">
                  If YES, give details: </td>
-                 <td width="18%" style="font-size:7pt; border-bottom:1px solid black;"></td>    
-                     
+                 <td width="18%" style="font-size:7pt; border-bottom:1px solid black;"></td>
+
              </tr>
-             
+
                  <tr>
-                 
+
                      <td  width="65%" style="font-size:7pt;  border-right:1px solid black; border-left:1px solid black; background-color:#C3BEBF;">b. Are you a a person with disability?</td>
                      <td width="10%" style="font-size:7pt; border-left:1px solid black;"> <input type="checkbox" check="true" name="1" value="1">
                      YES
@@ -2614,22 +2674,22 @@ class basicinfocontroller extends Controller
                      NO
                      </td>
              </tr>
-            
+
              <tr>
                  <td  width="65%" style="font-size:7pt; border-right:1px solid black; border-left:1px solid black; background-color:#C3BEBF;"> c. Are you a solo parent?</td>
-                 <td width="15%" style="font-size:7pt;"> 
+                 <td width="15%" style="font-size:7pt;">
                  If YES, give details: </td>
-                 <td width="18%" style="font-size:7pt; border-bottom:1px solid black;"></td>    
-                     
+                 <td width="18%" style="font-size:7pt; border-bottom:1px solid black;"></td>
+
              </tr>
-             
+
              <tr>
                  <td width="65%" style="font-size:7pt; border-right:1px solid black; border-left:1px solid black;  border-bottom:1px solid black; background-color:#C3BEBF;"></td>
-                 <td width="35%" style="font-size:7pt; border-bottom:1px solid black;">  
+                 <td width="35%" style="font-size:7pt; border-bottom:1px solid black;">
                  </td>
              </tr>
        </table>
-     
+
       <table width="100%" style="border-right:1px solid black;">
          <tr>
              <td width="15%" height="15px" style="font-size:7pt; ;border-left:1px solid black;border-bottom:1px solid black; background-color:#C3BEBF;">41. REFERENCES</td>
@@ -2642,7 +2702,7 @@ class basicinfocontroller extends Controller
              <td width="27%" height="15px" style="font-size:7pt; border-left:1px solid black; border-right:1px solid black; border-bottom:1px solid black; background-color:#C3BEBF;" align="center"> <br/>NAMES</td>
              <td width="28%"  height="15px"style="font-size:7pt; border-right:1px solid black; border-bottom:1px solid black; background-color:#C3BEBF;" align="center">ADDRESS</td>
              <td width="20%"  height="15px"style="font-size:7pt; border-right:1px solid black; border-bottom:1px solid black; background-color:#C3BEBF;" align="center">TEL.NO.</td>
-                 
+
              <td width="3%"  style="font-size:7pt; border-right:1px solid black; "> </td>
              <td width="20%"  style="font-size:7pt;  border-right:1px solid black; border-top:1px solid black;"> ID picture taken within the last 6 months 3.5cm. x.4.5cm. <br/> (passport size) </td>
              <td width="2%"  style="font-size:7pt; border-right:1px solid black; border-left:1px solid black;"> </td>
@@ -2657,10 +2717,10 @@ class basicinfocontroller extends Controller
              <td width="27%" height="15px" style="font-size:7pt; border-left:1px solid black;" align="center"></td>
              <td width="28%"  height="15px"style="font-size:7pt;" align="center"></td>
              <td width="20%"  height="15px"style="font-size:7pt; border-right:1px solid black;" align="center"></td>
-                 
+
              <td width="3%"  style="font-size:7pt; border-right:1px solid black; "> </td>
              <td width="20%"  style="font-size:7pt; border-right:1px solid black; " align="center"> With full and handwritten name tag and signature over printed name </td>
-             <td width="2%"  style="font-size:7pt; border-right:1px solid black;"> </td>         
+             <td width="2%"  style="font-size:7pt; border-right:1px solid black;"> </td>
           </tr>
           <tr>
              <td width="75%"  style="border-left:1px solid black;  border-right:1px solid black;"> </td>
@@ -2683,21 +2743,21 @@ class basicinfocontroller extends Controller
              <td width="3%"> </td>
              <td width="20%" style="font-size:8pt;" align="center"> PHOTO </td>
              <td width="2%"> </td>
-          
+
           </tr>
           <tr>
              <td width="40%" style="font-size:6pt; border-left:1px solid black; border-right:1px solid black; background-color:#C3BEBF;"> Government Issued ID (i.e.Passport, GSIS, SSS, PRC, Drivers License, etc.) </td>
              <td width="1%"> </td>
              <td width="34%" style="border-right:1px solid black; border-left:1px solid black; "> </td>
              <td width="2%"> </td>
-             <td width="22%" style="border-right:1px solid black; border-left:1px solid black; border-top:1px solid black;" align="center"></td>   
+             <td width="22%" style="border-right:1px solid black; border-left:1px solid black; border-top:1px solid black;" align="center"></td>
           </tr>
           <tr>
              <td width="40%" style="font-size:7pt; border-left:1px solid black; border-right:1px solid black; border-bottom:1px solid black; background-color:#C3BEBF;"> PLEASE INDICATE ID Number and Date of Issuance </td>
              <td width="1%"> </td>
              <td width="34%" style="border-right:1px solid black; border-left:1px solid black;"> </td>
              <td width="2%"> </td>
-             <td width="22%" style="border-right:1px solid black; border-left:1px solid black;" align="center"></td>   
+             <td width="22%" style="border-right:1px solid black; border-left:1px solid black;" align="center"></td>
          </tr>
          <tr>
              <td width="15%" style="font-size:6pt; border-left:1px solid black; border-right:1px solid black; border-bottom:1px solid black;"> Government Issued ID: </td>
@@ -2705,7 +2765,7 @@ class basicinfocontroller extends Controller
              <td width="1%"> </td>
              <td width="34%" style="font-size:6pt; border-right:1px solid black; background-color:#C3BEBF; border-left:1px solid black; border-bottom:1px solid black;  border-top:1px solid black;" align="center"> SIGNATURE (Sign inside the box) </td>
              <td width="2%"> </td>
-             <td width="22%" style="border-right:1px solid black; border-left:1px solid black;" align="center"></td>   
+             <td width="22%" style="border-right:1px solid black; border-left:1px solid black;" align="center"></td>
          </tr>
          <tr>
              <td width="15%" style="font-size:6pt; border-left:1px solid black; border-right:1px solid black; border-bottom:1px solid black;"> ID/License/Passport No.: </td>
@@ -2713,7 +2773,7 @@ class basicinfocontroller extends Controller
              <td width="1%"> </td>
              <td width="34%" style="font-size:6pt; border-right:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-top:1px solid black;" align="center"> </td>
              <td width="2%"> </td>
-             <td width="22%" style="border-right:1px solid black; border-left:1px solid black;" align="center"></td>   
+             <td width="22%" style="border-right:1px solid black; border-left:1px solid black;" align="center"></td>
          </tr>
          <tr>
              <td width="15%" style="font-size:6pt; border-left:1px solid black; border-right:1px solid black; border-bottom:1px solid black;">Date/Place of Issuance: </td>
@@ -2721,7 +2781,7 @@ class basicinfocontroller extends Controller
              <td width="1%"> </td>
              <td width="34%" style="font-size:6pt; background-color:#C3BEBF; border-right:1px solid black; border-left:1px solid black; border-bottom:1px solid black; border-top:1px solid black;" align="center"> Date Accomplished </td>
              <td width="2%"> </td>
-             <td width="22%" style="font-size:6pt; border-right:1px solid black; border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; background-color:#C3BEBF;" align="center"> Right Thumbmark</td>   
+             <td width="22%" style="font-size:6pt; border-right:1px solid black; border-top:1px solid black; border-bottom:1px solid black; border-left:1px solid black; background-color:#C3BEBF;" align="center"> Right Thumbmark</td>
          </tr>
          <tr>
              <br/>
@@ -2763,52 +2823,52 @@ class basicinfocontroller extends Controller
          <tr>
              <td width="100%" style="font-size:6pt; border-bottom:1px solid black; border-left:1px solid black" align="right">CS FORM 212(Revised 2017), Page 4 of 4</td>
          </tr>
-                                                                                                                                                                 
-     
+
+
       </table>
-     
-     
-     
-     
-     
-     
+
+
+
+
+
+
                          </table>
-     
-     
-     
-     
+
+
+
+
                          </table>
-     
-     
+
+
                      </table>
-     
-     
-     
+
+
+
                      </table>
-     
-     
-               
-                 
-     
-     
+
+
+
+
+
+
              </table>
-     
-     
-     
-     
-     
-     
+
+
+
+
+
+
              </table>
-     
+
      </table>
-     
+
               ';
-            
+
              PDF::SetTitle('PERSONAL DATA SHEET');
              PDF::SetFont('helvetica', '', 8);
             //  PDF::AddPage('P');
-           
-            
+
+
 
 
              PDF::writeHTML($Template, true, 0, true, 0);
@@ -2821,10 +2881,10 @@ class basicinfocontroller extends Controller
                  $response->header("Content-Type", $type);
                  return $response;
              }
-     
+
          } catch (\Exception $e) {
              return response()->json(new JsonResponse(['errormsg' => $e, 'status' => 'error']));
          }
-     
+
         }
 }
