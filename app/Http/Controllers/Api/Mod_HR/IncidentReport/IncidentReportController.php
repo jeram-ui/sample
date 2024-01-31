@@ -383,85 +383,75 @@ class IncidentReportController extends Controller
         </tr>
 
         <tr>
-            <td width="14%" style="font-size:8pt; border-top:1px solid black">
+            <td width="30%" style="font-size:8pt; border-top:1px solid black">
                 <b> PARTICULARS </b>
             </td>
-            <td width="26%" style="font-size:7pt; border-right:1px solid black; border-top:1px solid black">
+            <td width="40%" style="font-size:7pt; border-right:1px solid black; border-top:1px solid black">
               (For Personnel Section use only)
             </td>
             <td width="30%" align="center" style="font-size:8pt; border-top:1px solid black; border-right:1px solid black">
                 <b> REMARKS/RECOMMENDATION </b>
             </td>
-            <td width="30%" align="center" style="font-size:7pt; border-top:1px solid black;border-right:1px solid black;">
-                <b> REMARKS For MEMO DEFIANT request </b>
-            </td>
+           
         </tr>
         <tr>
-            <td width="27%" style="font-size:8pt; border-right:1px solid black; border-top:1px solid black">
+            <td width="40%" style="font-size:8pt; border-right:1px solid black; border-top:1px solid black">
                 Classication of Filing/Request
             </td>
-            <td width="13%" align="center" style="font-size:8pt; border-right:1px solid black; border-top:1px solid black">
+            <td width="30%" align="center" style="font-size:8pt; border-right:1px solid black; border-top:1px solid black">
                 Frequency
             </td>
             <td width="30%" align="center" style="font-size:8pt; border-top:1px solid black; border-right:1px solid black">'.$value->hr_notes .'</td>
-            <td width="30%"  style="font-size:7pt; border-top:1px solid black; border-right:1px solid black"> <b><i> For Dept./Section/Unit Head </i></b> <br/> NOTED: </td>
+         
         </tr>
         <tr>
             <td width="3%" style="font-size:8pt; border-right:1px solid black; border-top:1px solid black">
             </td>
-            <td width="24%" style="font-size:8pt; border-right:1px solid black; border-top:1px solid black">
+            <td width="37%" style="font-size:8pt; border-right:1px solid black; border-top:1px solid black">
                 Within the prescribed period
             </td>
-            <td width="13%" align="center" style="font-size:8pt; border-right:1px solid black; border-top:1px solid black"> ' . $value->w_pres_period . '
+            <td width="30%" align="center" style="font-size:8pt; border-right:1px solid black; border-top:1px solid black"> ' . $value->w_pres_period . '
 
             </td>
             <td width="30%" align="center" style="font-size:8pt; border-top:1px solid black; border-right:1px solid black"> </td>
-            <td width="30%" align="center" style="font-size:7pt;border-right:1px solid black;">  </td>
+          
         </tr>
         <tr>
             <td width="3%" style="font-size:8pt; border-right:1px solid black; border-top:1px solid black">
             </td>
-            <td width="24%" style="font-size:8pt; border-right:1px solid black; border-top:1px solid black">
+            <td width="37%" style="font-size:8pt; border-right:1px solid black; border-top:1px solid black">
                 Lapsed the prescribed period
             </td>
-            <td width="13%" align="center" style="font-size:8pt; border-right:1px solid black; border-top:1px solid black"> ' . $value->l_pres_period . '
+            <td width="30%" align="center" style="font-size:8pt; border-right:1px solid black; border-top:1px solid black"> ' . $value->l_pres_period . '
 
             </td>
             <td width="30%" align="center" style="font-size:8pt; border-top:1px solid black; border-right:1px solid black"> </td>
-            <td width="30%" align="center" style="font-size:7pt; border-right:1px solid black;">  </td>
+           
         </tr>
         <tr>
-            <td width="40%"  style="font-size:8pt; border-top:1px solid black;border-right:1px solid black;"> NOTED for action: </td>
-            <td width="30%"  style="font-size:7pt; border-top:1px solid black;border-right:1px solid black;"> </td>
-            <td width="30%" align="center"  style="font-size:6.5pt; border-right:1px solid black;"></td>
+            <td width="70%"  style="font-size:8pt; border-top:1px solid black;border-right:1px solid black;"> NOTED for action: </td>
+           
+            <td width="30%" align="center"  style="font-size:6.5pt; border-right:1px solid black;border-top:1px solid black;"></td>
         </tr>
-        <table width="100%">
         <tr>
-            <td width="40%"  style="font-size:7pt; border-right:1px solid black;"> </td>
-            <td width="30%"  style="font-size:7pt; border-right:1px solid black;"> </td>
-            <td width="30%"  style="font-size:8pt; border-right:1px solid black; border-top:1px solid black;"> <b><i> Office of the City Mayor <br/> APPROVED: </i></b>  </td>
-        </tr>
-        </table>
-        <tr>
-            <td width="40%" height="30px"  style="font-size:7pt; border-right:1px solid black;"> </td>
-            <td width="30%"  style="font-size:7pt; border-right:1px solid black;"> </td>
+            <td width="70%" height="30px"  style="font-size:7pt; border-right:1px solid black;"> </td>
+          
             <td width="30%" height="30px" style="font-size:8pt; border-right:1px solid black; "> </td>
         </tr>
 
         <tr>
-            <td width="40%" align="center"  style="font-size:8pt; border-right:1px solid black;">' . $value->action_time . '</td>
+            <td width="70%" align="center"  style="font-size:8pt; border-right:1px solid black;">' . $value->action_time . '</td>
             <td width="30%"  style="font-size:7pt; border-right:1px solid black;"> </td>
-            <td width="30%"  style="font-size:8pt; border-right:1px solid black; "> </td>
+            
         </tr>
         <tr>
-            <td width="40%" align="center"  style="font-size:7pt; border-right:1px solid black;"><b> HRMO IV </b></td>
+            <td width="70%" align="center"  style="font-size:7pt; border-right:1px solid black;"><b> HRMO IV </b></td>
             <td width="30%"  style="font-size:7pt; border-right:1px solid black;"> </td>
-            <td width="30%" align="center"  style="font-size:6.5pt; border-right:1px solid black; ">' . $value->mayor_time . ' </td>
+         
         </tr>
         <tr>
-            <td width="70%"  style="font-size:6pt; border-right:1px solid black; border-top:1px solid black; border-bottom:1px solid black;"><b>Distribution: Original Copy-Personnel, Dupplicate-Reporting Dept./Party, 3rd Copy-201 file, 4th Copy-Others as needed </b></td>
-
-            <td width="30%" align="center"  style="font-size:7pt; border-right:1px solid black;border-bottom:1px solid black"><b> City Mayor </b></td>
+            <td width="100%"  style="font-size:6pt; border-right:1px solid black; border-top:1px solid black; border-bottom:1px solid black;"><b>Distribution: Original Copy-Personnel, Dupplicate-Reporting Dept./Party, 3rd Copy-201 file, 4th Copy-Others as needed </b></td>
+           
         </tr>
 
     </table>
