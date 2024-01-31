@@ -106,8 +106,15 @@ Route::namespace('Api')->group(function () {
             });
             Route::prefix('mayor')->group(function () {
                 Route::post('store', 'Scheduler\MayorsController@store');
+                Route::post('EventStore', 'Scheduler\MayorsController@EventStore');
                 Route::get('printMayorSlip/{id}', 'Scheduler\MayorsController@printMayorSlip');
                 Route::get('displayCalendar', 'Scheduler\MayorsController@displayCalendar');
+            });
+            Route::prefix('Events')->group(function () {
+                Route::post('store', 'Scheduler\eventController@store');
+                Route::post('EventStore', 'Scheduler\eventController@EventStore');
+                Route::get('printMayorSlip/{id}', 'Scheduler\eventController@printMayorSlip');
+                Route::get('displayCalendar', 'Scheduler\eventController@displayCalendar');
             });
             Route::prefix('training')->group(function () {
                 Route::post('store', 'Scheduler\trainingController@store');

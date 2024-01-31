@@ -182,6 +182,8 @@ Route::namespace('Api')->group(function () {
         Route::put('sworncancel/{id}', 'Mod_HR\SSALNW\SwornController@sworncancel');
         Route::put('Edit/{id}', 'Mod_HR\SSALNW\SwornController@Edit');
         Route::post('print', 'Mod_HR\SSALNW\SwornController@print');
+        Route::post('printDtls', 'Mod_HR\SSALNW\SwornController@printDtls');
+
       });
       Route::prefix('individual')->group(function () {
         Route::get('show', 'Mod_HR\individual\individualController@show');
@@ -191,6 +193,7 @@ Route::namespace('Api')->group(function () {
         Route::put('cancel/{id}', 'Mod_HR\individual\individualController@cancel');
         Route::put('Edit/{id}', 'Mod_HR\individual\individualController@Edit');
         Route::post('print', 'Mod_HR\individual\individualController@print');
+        Route::post('print2', 'Mod_HR\individual\individualController@print2');
         Route::post('printpayslip', 'Mod_HR\individual\individualController@printpayslip');
         Route::post('ITC', 'Mod_HR\individual\individualController@ITC');
         Route::get('reference', 'Mod_HR\individual\individualController@reference');

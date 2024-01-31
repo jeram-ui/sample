@@ -183,7 +183,7 @@ class individualController extends Controller
         return response()->json(new JsonResponse(['Message' => 'Transaction completed successfully.', 'status' => 'success']));
     }
 
-    public function print(Request $request)
+    public function print2(Request $request)
     {
         try {
             $form = $request->itm;
@@ -514,6 +514,187 @@ class individualController extends Controller
             return response()->json(new JsonResponse(['errormsg' => $e, 'status' => 'error']));
         }
     }
+
+    public function print(Request $request)
+    {
+        try {
+            $form = $request->itm;
+            $sworn = db::table($this->hr_db . '.tbl_official_business')
+                ->join($this->hr_db . '.employee_information', 'employee_information.PPID', 'tbl_official_business.emp_id')
+                ->select(
+                    '*',
+                    //  db::raw("TIME_FORMAT(int_depart, '%h:%i %p') as 'int_depart'"),
+                    // db::raw("TIME_FORMAT(int_arrival, '%h:%i %p') as 'int_arrival'"),
+                    // db::raw("TIME_FORMAT(Actual_Depart, '%h:%i %p') as 'Actual_Depart'"),
+                    // db::raw("TIME_FORMAT(Actual_Arrival, '%h:%i %p') as 'Actual_Arrival'"),
+                    'employee_information.NAME',
+                    'employee_information.POSITION',
+                    'tbl_official_business.ob_id',
+                    db::raw($this->hr_db . "._getEmployeeName(`ob_recom_by`) AS 'dept_app_time'"),
+                    db::raw("IFNULL(" . $this->hr_db . "._get_signature (`ob_recom_by`), '') AS 'dept_app'")
+                )
+                ->where('ob_id', $form['ob_id'])
+                ->get();
+            log::Debug($sworn);
+            $IndividData = "";
+            foreach ($sworn as $key => $value) {
+                $IndividData = $value;
+            }
+
+            $certified = db::table($this->hr_db . '.tbl_official_business_dtl')
+                ->select(
+                    '*',
+                    db::raw("TIME_FORMAT(ob_off_timedept, '%h:%i %p') as 'ob_off_timedept'"),
+                    db::raw("TIME_FORMAT(ob_off_timearr, '%h:%i %p') as 'ob_off_timearr'"),
+                    db::raw("TIME_FORMAT(ob_dest_timedept, '%h:%i %p') as 'ob_dest_timedept'"),
+                    db::raw("TIME_FORMAT(ob_dest_timearr, '%h:%i %p') as 'ob_dest_timearr'")
+                )
+                ->where('ob_id', $form['ob_id'])
+                ->get();
+            $Cert = "";
+
+            foreach ($certified as $key => $value) {
+                $Cert = $value;
+            }
+
+            $Template = '<table cellpadding="1">
+            <tr>
+                <th width="32%" align="right" style="border-bottom:1px solid black">
+                <img src="' . public_path() . '/img/flag.jpg"  height="60" width="90">
+                </th>
+                <th width="38%" style="font-size:11pt; border-bottom:1px solid black; word-spacing:30px" align="center">
+                        Republic of the Philippines
+                <br />
+                        Province of Cebu
+                <br />
+
+                    <b>Municipality of Dumanjug</b>
+                <br />
+                <br />
+                    </th>
+
+                <th align="left" style="border-bottom:1px solid black">
+                <img src="' . public_path() . '/img/logo1.png"  height="60" width="60">
+                </th>
+             </tr>
+             <tr>
+                <th width="100%" align="center" style="font-size:11pt"><b>PASS SLIP</b></th>
+             </tr>
+            </table >
+            <br/>
+            <br/>
+            <table>
+                <tr>
+                    <td width="25%" style="border-bottom:1px solid black" align="center">' . $IndividData->NAME . '</td>
+                    <td width="50%"></td>
+                    <td width="25%" style="border-bottom:1px solid black" align="center">' . $IndividData->ob_date . '</td>
+                </tr>
+                <tr>
+                    <td width="25%" align="center">NAME AND SIGNATURE</td>
+                    <td width="50%"></td>
+                    <td width="25%" align="center">Date</td>
+                </tr>
+                <br/>
+                <tr>
+                    <td width="7%"></td>
+                    <td width="3%">1.</td>
+                    <td width="10%">Destination:</td>
+                    <td width="25%" style="border-bottom:1px solid black" align="center">' . $IndividData->ob_agency . '</td>
+                    <td width="7%"></td>
+                    <td width="3%">5.</td>
+                    <td width="25%">Summary of Accomplishment:</td>
+                    <td width="18%" style="border-bottom:1px solid black" align="center"></td>
+                </tr>
+
+                <tr>
+                    <td width="7%"></td>
+                    <td width="3%">2.</td>
+                    <td width="10%">Purpose:</td>
+                    <td width="25%" style="border-bottom:1px solid black" align="center">' . $IndividData->ob_remarks . '</td>
+                    <td width="7%"></td>
+                    <td width="3%">6.</td>
+                    <td width="23%">Appearance Certified by:</td>
+                    <td width="20%" style="border-bottom:1px solid black" align="center"></td>
+                </tr>
+                <tr>
+                    <td width="7%"></td>
+                    <td width="3%">3.</td>
+                    <td width="10%">Type</td>
+                </tr>
+                <br/>
+                <tr>
+                    <td width="10%"></td>
+                    <td><input type="checkbox" checked="' . ($IndividData->ob_purpose === 'Official' ? "true" : "false") . '" name="1" value="1"></td>
+                    <td width="10%">Official</td>
+                    <td width="20%"></td>
+                    <td width="7%">Name:</td>
+                    <td width="30%" style="border-bottom:1px solid black"></td>
+                </tr>
+                <tr>
+                    <td width="10%"></td>
+                    <td><input type="checkbox" checked="' . ($IndividData->ob_purpose === 'Quasi- official' ? "true" : "false") . '" name="1" value="1"></td>
+                    <td width="15%">Quasi-official</td>
+                    <td width="15%"></td>
+                    <td width="9%">Signature:</td>
+                    <td width="28%" style="border-bottom:1px solid black"></td>
+                </tr>
+                <tr>
+                    <td width="10%"></td>
+                    <td><input type="checkbox" checked="' . ($IndividData->ob_purpose === 'Personal' ? "true" : "false") . '" name="1" value="1"></td>
+                    <td width="15%">Personal</td>
+                    <td width="15%"></td>
+                    <td width="7%">Office:</td>
+                    <td width="30%" style="border-bottom:1px solid black"></td>
+                </tr>
+                <br/>
+                <tr>
+                    <td width="10%">Time Out:</td>
+                    <td width="25%" style="border-bottom:1px solid black" align="center">' . $Cert->ob_dest_timedept . '</td>
+                    <td width="15%"></td>
+                    <td width="20%">Time In/Back to Station:</td>
+                    <td width="25%" style="border-bottom:1px solid black" align="center">' . $Cert->ob_dest_timearr . '</td>
+                </tr>
+                <br/>
+                <br/>
+                <br/>
+                <tr>
+                    <td width="50%">APPROVED:</td>
+                    <td width="50%">NOTED:</td>
+                </tr>
+                <br/>
+                <tr>
+                    <td width="30%" style="border-bottom:1px solid black" align="center"><b>'.$IndividData->{'dept_app_time'}.'</b></td>
+                    <td width="30%"></td>
+                    <td width="30%" style="border-bottom:1px solid black"></td>
+                    <td width="10%"></td>
+                </tr>
+                <tr>
+                    <td width="30%" align="center">Dept. Head/Supervisors</td>
+                </tr>
+            </table>
+
+           ';
+            PDF::SetTitle('Individual Pass/Time Adjustment Slip');
+            PDF::SetFont('helvetica', '', 10);
+            PDF::AddPage('P');
+            // PDF::Image(public_path() . $IndividData->{'dept_app'}, 50, 50, 27, 27, 'PNG', 'http://www.tcpdf.org', '', false, 300);
+            PDF::writeHTML($Template, true, 0, true, 0);
+
+            PDF::Output(public_path() . '/prints.pdf', 'F');
+            $full_path = public_path() . '/prints.pdf';
+            if (\File::exists(public_path() . '/prints.pdf')) {
+                $file = \File::get($full_path);
+                $type = \File::mimeType($full_path);
+                $response = \Response::make($file, 200);
+                $response->header("Content-Type", $type);
+
+                return $response;
+            }
+        } catch (\Exception $e) {
+            return response()->json(new JsonResponse(['errormsg' => $e, 'status' => 'error']));
+        }
+    }
+
     // public function printpayslip(Request $request)
     // {
     //     try{
@@ -881,6 +1062,7 @@ class individualController extends Controller
                     <td width="30%" style="border-bottom:1px solid black"></td>
                     <td width="15%"></td>
                 </tr>
+
             </table>';
 
 

@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\Log;
 use Storage;
 use File;
 
-class MayorsController extends Controller
+class eventController extends Controller
 {
     private $lgu_db;
     private $hr_db;
@@ -38,7 +38,7 @@ class MayorsController extends Controller
     {
         $lgu_db = config('variable.db_lgu');
         $empid = Auth::user()->ID;
-        $mapping = DB::table($lgu_db . '.sched_group_mapping')->where('sched_name', 'Mayor Appointment')->first();
+        $mapping = DB::table($lgu_db . '.sched_group_mapping')->where('sched_name', 'Event')->first();
         $data_calendar = DB::table($lgu_db . '.appointments')->where('sched_group', $mapping->group_id)
             ->whereBetween('appointments.StartDate', [$request->from, $request->to])->get();;
         $calendar = array();
@@ -69,7 +69,7 @@ class MayorsController extends Controller
     }
     public function printMayorSlip($id)
     {
-        $dataMain = DB::select('call ' . $this->lgu_db . '.balodoy_display_mayorschedule(?)', array($id));
+        $dataMain = DB::select('call ' . $this->lgu_db . '.mTan_display_EventSchedule(?)', array($id));
         foreach ($dataMain as $row) {
             $infoMain = ($row);
         }
@@ -154,59 +154,17 @@ class MayorsController extends Controller
             return response()->json(new JsonResponse(['errormsg' => $e, 'status' => 'error']));
         }
     }
-    public function store(Request $request)
-    {
-        log::debug($request);
-        $lgu_db = config('variable.db_lgu');
-        $files = $request->file('files');
-        //  $main = unset($request->files);
-        $main['Initiator'] = Auth::user()->id;
-        $idx = $request->ID;
-        $mapping = DB::table($lgu_db . '.sched_group_mapping')->where('sched_name', 'Mayor Appointment')->first();
-        $main['sched_group'] = $mapping->group_id;
-        $main['Subject'] = $request->Subject;
-        $main['Description'] = $request->Description;
-        $main['Location'] = $request->Location;
-        $main['StartDate'] = $request->StartDate;
-        $main['EndDate'] = $request->EndDate;
-        $main['GUID'] = $request->GUID;
-        if ($idx == 0) {
-            DB::table($lgu_db . '.appointments')->insert($main);
-            $id = DB::getPdo()->lastInsertId();
-            $path = hash('sha256', time());
-            if (!empty($files)) {
-                for ($i = 0; $i < count($files); $i++) {
-                    $file = $files[$i];
-                    $filename = $file->getClientOriginalName();
-                    if (Storage::disk('docs')->put($path . '/' . $filename,  File::get($file))) {
-                        $data = array(
-                            'trans_id' => $id,
-                            'file_name' => $filename,
-                            'file_path' => $path,
-                            'file_size' => $file->getSize(),
-                            'trans_type' => 'Mayors Appointment'
-                        );
-                        db::table('docs_upload')->insert($data);
-                    }
-                }
-            }
-        } else {
-            DB::table($lgu_db . '.appointments')
-                ->where('ID', $idx)
-                ->update($main);
-        }
-        return response()->json(new JsonResponse(['Message' => 'Transaction completed successfully.', 'status' => 'success']));
-    }
 
     public function EventStore(Request $request)
     {
+
         log::debug($request);
         $lgu_db = config('variable.db_lgu');
         $files = $request->file('files');
         //  $main = unset($request->files);
         $main['Initiator'] = Auth::user()->id;
         $idx = $request->ID;
-        $mapping = DB::table($lgu_db . '.sched_group_mapping')->where('sched_name', 'Mayor Appointment')->first();
+        $mapping = DB::table($lgu_db . '.sched_group_mapping')->where('sched_name', 'Event')->first();
         $main['sched_group'] = $mapping->group_id;
         $main['Subject'] = $request->Subject;
         $main['Description'] = $request->Description;
@@ -228,7 +186,7 @@ class MayorsController extends Controller
                             'file_name' => $filename,
                             'file_path' => $path,
                             'file_size' => $file->getSize(),
-                            'trans_type' => 'Mayors Appointment'
+                            'trans_type' => 'Event'
                         );
                         db::table('docs_upload')->insert($data);
                     }

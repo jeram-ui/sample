@@ -43,7 +43,7 @@ public function __construct(GlobalController $global)
     //   ->leftjoin($this->hr_db .'.sworn_liabilities', 'sworn_table.id', '=', 'sworn_liabilities.mainID')
     //   ->leftjoin($this->hr_db .'.sworn_businessinterest', 'sworn_table.id', '=', 'sworn_businessinterest.mainID')
     //   ->leftjoin($this->hr_db .'.sworn_relatives', 'sworn_table.id', '=', 'sworn_relatives.mainID')
-        ->select('*',db::raw('CONCAT(spouse_lname,",", spouse_fname," ",spouse_mname) AS spouse'),'sworn_table.id')
+        ->select('*',db::raw('CONCAT(spouse_lname,", ", spouse_fname," ",spouse_mname) AS spouse'),'sworn_table.id')
         ->where('sworn_table.status', 0)
         ->where('emp_id',Auth::user()->Employee_id)
         ->get();
@@ -60,7 +60,7 @@ public function __construct(GlobalController $global)
         $data['liabilities'] =db::table($this->hr_db .'.sworn_liabilities')->where('mainID', $id)->get();
         $data['business'] =db::table($this->hr_db .'.sworn_businessinterest')->where('mainID', $id)->get();
         $data['relative'] =db::table($this->hr_db .'.sworn_relatives')->where('mainID', $id)->get();
-        $data['signatoryxxx'] =db::table($this->hr_db .'.sworn_signatory')->where('mainID', $id)->get();
+        $data['signatoryxxxx'] =db::table($this->hr_db .'.sworn_signatory')->where('mainID', $id)->get();
 
         return response()->json(new JsonResponse($data));
     }
@@ -343,9 +343,9 @@ public function __construct(GlobalController $global)
             ->update(['status' => 1]);
       return response()->json(new JsonResponse(['Message' => 'Transaction completed successfully.', 'status' => 'success']));
     }
+    function print(Request $request){
+        try {
 
-    public function print(Request $request){
-        try{
             $form = $request->itm;
             $sworn = db::table($this->hr_db .'.sworn_table')
             ->select('*','id','Fname','Firstname','MName')
@@ -353,10 +353,6 @@ public function __construct(GlobalController $global)
             ->get();
             $swornData ="";
 
-            $sworn_unmarried = db::table($this->hr_db . '.sworn_unmarried')
-            ->where('mainID', $form['id'] )
-            ->get();
-            // $swornformx ="";
 
             $sworn_assets = db::table($this->hr_db . '.sworn_assets')
             ->where('mainID', $form['id'] )
@@ -370,7 +366,150 @@ public function __construct(GlobalController $global)
             ->where('mainID', $form['id'] )
             ->get();
 
+
+        if (count($sworn_assets) > 4 ||  count($sworn_assetsb) > 4 || count($sworn_liabilities) > 4){
+
+                $Template =$this->printFirst($request);
+                PDF::AddPage('P');
+                PDF::SetFont('Helvetica', '', 8);
+                PDF::SetTitle('Resolution');
+                PDF::writeHTML($Template, true, 0, true, 0);
+                PDF::lastPage();
+
+                PDF::AddPage('P');
+                $Template1 =$this->printSecPage($request);
+                PDF::SetFont('Helvetica', '', 8);
+                PDF::writeHTML($Template1, true, 0, true, 0);
+
+                PDF::AddPage('P');
+                $Template2 =$this->printdtls1($request);
+                PDF::SetFont('Helvetica', '', 8);
+                PDF::writeHTML($Template2, true, 0, true, 0);
+
+                PDF::Output(public_path() . '/print.pdf', 'F');
+                $full_path = public_path() . '/print.pdf';
+                if (\File::exists(public_path() . '/print.pdf')) {
+                    $file = \File::get($full_path);
+                    $type = \File::mimeType($full_path);
+                    $response = \Response::make($file, 200);
+                    $response->header("Content-Type", $type);
+                    return $response;
+                }
+        }else{
+
+                $Template =$this->printFirst($request);
+                PDF::AddPage('P');
+                PDF::SetFont('Helvetica', '', 8);
+                PDF::SetTitle('Resolution');
+                PDF::writeHTML($Template, true, 0, true, 0);
+
+                PDF::Output(public_path() . '/print.pdf', 'F');
+                $full_path = public_path() . '/print.pdf';
+                if (\File::exists(public_path() . '/print.pdf')) {
+                    $file = \File::get($full_path);
+                    $type = \File::mimeType($full_path);
+                    $response = \Response::make($file, 200);
+                    $response->header("Content-Type", $type);
+                    return $response;
+                }
+
+            }
+    } catch (\Exception $e) {
+        return response()->json(new JsonResponse(['errormsg' => $e, 'status' => 'error']));
+    }
+
+    }
+
+
+
+    public function printSecPage($request){
+        try{
+            $form = $request->itm;
+            $sworn = db::table($this->hr_db .'.sworn_table')
+            ->select('*','id','Fname','Firstname','MName')
+            ->where('id', $form['id'] )
+            ->get();
+            $swornData ="";
+
+            $asset_total = db::table($this->hr_db . '.sworn_assets')
+            ->select("*",
+                    db::raw('sum(ifnull(AcquisitionCost, 0)) as TotalassetA'),
+                    'sworn_assets.id')
+            ->where('mainID', $form['id'] )
+            ->get();
+
+            $setAA = "";
+
+            foreach ($asset_total as $key => $value) {
+                $setAA = $value;
+            }
+
+
+            $assetB_total =  db::table($this->hr_db . '.sworn_assetsb')
+            ->select("*",
+                    db::raw('sum(ifnull(AcquisitionCostamount, 0)) as TotalassetB'),
+                    'sworn_assetsb.id')
+            ->where('mainID', $form['id'] )
+            ->get();
+
+             $setBBB = "";
+
+            foreach ($assetB_total as $key => $value) {
+                $setBBB = $value;
+
+            }
+
+
+            $totalAllAsset = 0;
+            $totalallSet = $totalAllAsset + $setAA->TotalassetA + $setBBB->TotalassetB;
+
+            // $subTotalLiab = 0;
+            // $TotalLiabilitiesss = $laibltx->Ounstandingbalancesss + $subTotalLiab ;
+
+            log::debug("Sulod");
+
+            $sworn_assetsb = db::table($this->hr_db . '.sworn_assetsb')
+            ->skip(0)
+            ->take(4)
+            ->where('mainID', $form['id'] )
+            ->get();
+
+
+            $liabilitiess =  db::table($this->hr_db . '.sworn_liabilities')
+            ->select("*",
+                    db::raw('sum(ifnull(Ounstandingbalance, 0)) as Ounstandingbalancesss'),
+                    'sworn_liabilities.id')
+            ->where('mainID', $form['id'] )
+            ->get();
+
+            $subTotalLiab = 0;
+
+            $laibltx = "";
+            foreach ($liabilitiess as $key => $value) {
+                $subTotalLiab = ($totalallSet - $value->Ounstandingbalancesss) + $subTotalLiab;
+                $positive = "";
+
+                if($subTotalLiab < 0){
+                    // $negative = "";
+                    $positive =  "(" .number_format(abs($subTotalLiab), 2). ")";
+
+                }else{
+                    $positive = number_format($subTotalLiab, 2);
+                }
+                log::debug($subTotalLiab);
+                $laibltx = $value;
+            }
+
+
+            $sworn_liabilities = db::table($this->hr_db . '.sworn_liabilities')
+            ->skip(0)
+            ->take(4)
+            ->where('mainID', $form['id'] )
+            ->get();
+
             $sworn_businessinterest = db::table($this->hr_db . '.sworn_businessinterest')
+            ->skip(0)
+            ->take(4)
             ->where('mainID', $form['id'] )
             ->get();
 
@@ -379,9 +518,402 @@ public function __construct(GlobalController $global)
             ->get();
 
         foreach ($sworn as $key => $value) {
-                log::debug($value->Fname);
+                // log::debug($value->Fname);
                 $swornData= $value;
             }
+
+            $signatory = db::table($this->hr_db . '.sworn_signatory')
+            ->where('mainID', $form['id'] )
+            ->get();
+            $signatoryxx = "";
+
+            foreach ($signatory as $key => $value) {
+                $signatoryxx= $value;
+            }
+
+        $liabilities = "";
+        $liabilitiesTotal = 0;
+        foreach ($sworn_liabilities as $key => $value) {
+            $liabilitiesTotal = $liabilitiesTotal + $value->Ounstandingbalance;
+                $liabilities .= '<tr>
+                <td style="font-size:7pt;" align="center">'. $value->nature.'</td>
+                <td style="font-size:7pt;" align="center">'. $value->NameCreditor.'</td>
+                <td style="font-size:7pt;" align="center">'. number_format($value->Ounstandingbalance,2).'</td>
+            </tr>';
+            }
+            if(count($sworn_liabilities)< 4){
+                for($i = count($sworn_liabilities); $i<4; $i++){
+                    $liabilities .= '<tr>
+                <td style="font-size:7pt;" align="center"></td>
+                <td style="font-size:7pt;" align="center"></td>
+                <td style="font-size:7pt;" align="center"></td>
+            </tr>';
+            }
+        }
+
+        $business = "";
+        foreach ($sworn_businessinterest as $key => $value) {
+                $business .= '<tr>
+                <td style="font-size:7pt;" align="center">'. $value->NameEntity.'</td>
+                <td style="font-size:7pt;" align="center">'. $value->BusinessAddress.'</td>
+                <td style="font-size:7pt;" align="center">'. $value->NatureBusiness.'</td>
+                <td style="font-size:7pt;" align="center">' . (!empty($value->DateAcqInt) ? (date_format(date_create($value->DateAcqInt), "Y")) : "") . '</td>
+            </tr>';
+            }
+            if(count($sworn_businessinterest)< 4){
+                for($i = count($sworn_businessinterest); $i<4; $i++){
+                    $business .= '<tr>
+                    <td style="font-size:7pt;" align="center"></td>
+                    <td style="font-size:7pt;" align="center"></td>
+                    <td style="font-size:7pt;" align="center"></td>
+                    <td style="font-size:7pt;" align="center"></td>
+                </tr>';
+            }
+        }
+
+        $Relative = "";
+        foreach ($sworn_relatives as $key => $value) {
+                $Relative .= '<tr>
+                <td style="font-size:7pt;" align="center">'. $value->NameRelative.'</td>
+                <td style="font-size:7pt;" align="center">'. $value->Relationship.'</td>
+                <td style="font-size:7pt;" align="center">'. $value->Position1.'</td>
+                <td style="font-size:7pt;" align="center">'. $value->NameAgency.'</td>
+            </tr>';
+            }
+            if(count($sworn_relatives)< 4){
+                for($i = count($sworn_relatives); $i<4; $i++){
+                    $Relative .= '<tr>
+                <td style="font-size:7pt;" align="center"></td>
+                <td style="font-size:7pt;" align="center"></td>
+                <td style="font-size:7pt;" align="center"></td>
+                <td style="font-size:7pt;" align="center"></td>
+            </tr>';
+            }
+        }
+
+            $Template='<table style="width:100%;">
+
+        <table width="100%">
+        <br />
+            <tr>
+
+                <td width="2%"></td>
+                <td width="30%" style="font-size:10pt;"><b> 2. &nbsp;&nbsp; LIABILITIES</b></td>
+
+            </tr>
+        </table>
+        <table width="100%" border="1" cellpadding="2">
+        <tr>
+            <th style="font-size:8pt; background-color:#D3D3D3;" height="20px"  align="center"><b> NATURE </b></th>
+            <th style="font-size:8pt; background-color:#D3D3D3;"  align="center"><b> NAME OF CREDITORS </b></th>
+            <th style="font-size:8pt; background-color:#D3D3D3;"  align="center"><b> OUTSTANDING BALANCE </b></th>
+        </tr>
+            '.$liabilities.'
+    </table>
+
+        <table>
+        <tr>
+            <td width="85%" align="right" style="font-size:10pt;"><b> TOTAL LIABILITIES:</b></td>
+            <td width="15%" style="border-bottom:1px solid black;" align="center">'.number_format($laibltx->Ounstandingbalancesss,2).'</td>
+        </tr>
+        <tr>
+            <td width="85%" align="right" style="font-size:10pt;"><b> NET WORTH: Total Assets less Total Liabilities = </b></td>
+            <td width="15%" style="border-bottom:1px solid black;" align="center">'.$positive.'</td>
+        </tr>
+
+        <tr>
+            <td width="2%"></td>
+            <td width="50%" style="font-size:10pt;"><i> * Additional sheet/s may be used, if necessary.</i></td>
+
+        </tr>
+        </table>
+
+        <table style="width=100%;">
+        <tr>
+        <br />
+        <br />
+
+
+            <th style="font-size:10pt;" align="center">
+                <b> BUSINESS INTERESTS AND FINANCIAL CONNECTIONS</b>
+            </th>
+        </tr>
+        <tr>
+            <td width="20%"></td>
+            <td width="60%" align="center" style="font-size:8pt;" >
+            <i>(of Declarant/Declarants spouse/ Unmarried Children Below Eighteen (18)years of Age Living in Declarants Household)</i>
+            </td>
+            <td width="20%"></td>
+        </tr>
+        <tr>
+            <td width="20%"></td>
+            <td width="60%" align="center" style="font-size:8pt;" >
+            <i><input type="checkbox" check="true" name="1" value="1"><b> I/We do not have any business interest or financial connection. </b></i>
+            </td>
+            <td width="20%"></td>
+        </tr>
+        </table>
+    <br />
+    <br />
+    <table width="100%" border="1" cellpadding="2">
+        <tr>
+            <th  style="font-size:7pt; background-color:#D3D3D3;"  align="center"><b> NAME OF ENTITY/BUSINESS ENTERPRISE </b></th>
+            <th  style="font-size:7pt; background-color:#D3D3D3;"  align="center"><b> BUSINESS ADDRESS </b></th>
+            <th  style="font-size:7pt; background-color:#D3D3D3;"  align="center"><b> NATURE OF BUSINESS INTEREST &/OR FINANCIAL CONNECTION </b></th>
+            <th  style="font-size:7pt; background-color:#D3D3D3;"  align="center"><b> DATE OF ACQUISITION OF INTEREST OR CONNECTION </b></th>
+        </tr>
+            '.$business.'
+    </table>
+    <br />
+    <br />
+    <table style="width=100%;">
+    <tr>
+    <br>
+
+    <th style="font-size:10pt;" align="center">
+            <b> RELATIVES IN THE GOVERNMENT SERVICE</b>
+        </th>
+    </tr>
+    <tr>
+        <td width="20%"></td>
+        <td width="60%" align="center" style="font-size:8pt;" >
+        <i>(Within the Fourth Degree of Consanguiniy or Affinity. Include also Bilas,Balae and Inso)</i>
+        </td>
+        <td width="20%"></td>
+    </tr>
+    <tr>
+        <td width="20%"></td>
+        <td width="60%" align="center" style="font-size:8pt;" >
+        <i><input type="checkbox" check="true" name="1" value="1"><b> I/We do not know of any relative/s in the government service) </b></i>
+        </td>
+        <td width="20%"></td>
+    </tr>
+    </table>
+
+    <br />
+    <br />
+
+    <table width="100%" border="1" cellpadding="2">
+            <tr>
+
+                <th  style="font-size:7pt; background-color:#D3D3D3;"  align="center"><b> NAME OF RELATIVE </b></th>
+                <th  style="font-size:7pt; background-color:#D3D3D3;"  align="center"><b> RELATIONSHIP </b></th>
+                <th  style="font-size:7pt; background-color:#D3D3D3;"  align="center"><b>  POSITION </b></th>
+                <th  style="font-size:7pt; background-color:#D3D3D3;"  align="center"><b> NAME OF AGENCY/OFFICE AND ADDRESS </b></th>
+            </tr>
+            '.$Relative.'
+    </table>
+
+    <br />
+
+    <p style="font-size:10pt; text-align:justify"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; I hereby certify that these are true and correct statements of my assets, liabilities, net worth,
+     business interests and financial connections, including those of my spouse ad unmarried children below eigthteen (18)
+     years of age living in my household, and that to the best of my knowledge, the above-enumerated are names of my relatives in the government within the fourth civil degree of consanguinity or affinity. </p>
+
+
+    <p style="font-size:10pt; text-align:justify"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        &nbsp;&nbsp;&nbsp;&nbsp;
+        I hereby authorize the Ombudsman or his/her duly authorized representative
+        to obtain and secure from all appropriate government agencies, including the Bureau of Internal Revenue such to include those of my spouse and unmarried children below 18 years of age living with me in my household covering prvious years to include the year I first assumed office in government. </p>
+
+        <table width="100%">
+        <tr>
+            <td width="9%" align="left" style="font-size:9pt;"> Date: </td>
+            <td width="30%" style="border-bottom:1px solid black"> </td>
+        </tr>
+    </table>
+    <table width="100%">
+        <tr>
+        <br>
+        <td width="45%" align="left" style="font-size:7pt; border-bottom:1px solid black"></td>
+        <td width="10%"> </td>
+        <td width="45%" align="left" style="font-size:7pt; border-bottom:1px solid black"></td>
+
+        </tr>
+    </table>
+
+
+
+    <table width="100%">
+<tr>
+
+    <td width="45%" align="left" style="font-size:7pt;" align="center">(Signature of Declarant)</td>
+    <td width="10%"> </td>
+    <td width="45%" align="left" style="font-size:7pt;" align="center"> (Signature of Co-Declarant/Spouse) </td>
+
+</tr>
+</table>
+
+<table width="100%">
+
+<tr>
+<br />
+    <td width="18%" style="font-size:8pt"> Government Issued ID: </td>
+    <td width="27%" align="left" style="font-size:7pt; border-bottom:1px solid black">'.$signatoryxx->Dec_govID.'</td>
+    <td width="10%"></td>
+    <td width="18%" style="font-size:8pt"> Government Issued ID: </td>
+    <td width="27%" align="left" style="font-size:7pt; border-bottom:1px solid black">'.$signatoryxx->CoDec_govID.'</td>
+
+</tr>
+<tr>
+    <td width="18%" style="font-size:8pt"> ID No.: </td>
+    <td width="27%" align="left" style="font-size:7pt; border-bottom:1px solid black">'.$signatoryxx->Dec_IDno.'</td>
+    <td width="10%"></td>
+    <td width="18%" style="font-size:8pt"> ID No.:  </td>
+    <td width="27%" align="left" style="font-size:7pt; border-bottom:1px solid black">'.$signatoryxx->CoDec_IDno.'</td>
+
+</tr>
+
+<tr>
+    <td width="18%" style="font-size:8pt">Date Issued: </td>
+    <td width="27%" align="left" style="font-size:7pt; border-bottom:1px solid black">' . (!empty($signatoryxx->Dec_dateIssue) ? (date_format(date_create($signatoryxx->Dec_dateIssue), "M d, Y")) : "") . '</td>
+    <td width="10%"></td>
+    <td width="18%" style="font-size:8pt"> Date Issued:  </td>
+    <td width="27%" align="left" style="font-size:7pt; border-bottom:1px solid black">' . (!empty($signatoryxx->CoDec_dateIssue) ? (date_format(date_create($signatoryxx->CoDec_dateIssue), "M d, Y")) : "") . '</td>
+
+</tr>
+
+</table>
+<table width="100%">
+<tr>
+<br />
+    <td width="42%" style="font-size:10pt"><b> &nbsp;&nbsp;&nbsp; SUBSCRIBED AND SWORN</b> to before me this  </td>
+    <td width="5%" align="center" style="border-bottom:1px solid black">' . (!empty($signatoryxx->SubSworn_date) ? (date_format(date_create($signatoryxx->SubSworn_date), "d")) : "") . '</td>
+    <td width="6%"> day of</td>
+    <td width="6%" align="center" style="border-bottom:1px solid black">' . (!empty($signatoryxx->SubSworn_date) ? (date_format(date_create($signatoryxx->SubSworn_date), "M")) : "") . '</td>
+    <td width="40%" style="font-size:10pt">, affiant exhibiting to me the above-stated </td>
+</tr>
+<tr>
+
+    <td style="font-size:10pt"> government issued identification card. </td>
+
+</tr>
+</table>
+
+
+
+
+    </table>';
+            // PDF::SetTitle('Sworn Statement of Assets, Liabilities and Net Worth');
+            // PDF::SetFont('helvetica', '', 8);
+            // PDF::AddPage('P');
+            // PDF::writeHTML($Template, true, 0, true, 0);
+            // PDF::Output(public_path() . '/prints.pdf', 'F');
+            // $full_path = public_path() . '/prints.pdf';
+            // if (\File::exists(public_path() . '/prints.pdf')) {
+            //     $file = \File::get($full_path);
+            //     $type = \File::mimeType($full_path);
+            //     $response = \Response::make($file, 200);
+            //     $response->header("Content-Type", $type);
+            //     return $response;
+            // }
+            return $Template;
+
+        } catch (\Exception $e) {
+            return response()->json(new JsonResponse(['errormsg' => $e, 'status' => 'error']));
+        }
+
+       }
+
+       public function printFirst($request){
+        try{
+            $form = $request->itm;
+            $sworn = db::table($this->hr_db .'.sworn_table')
+            ->select('*','id','Fname','Firstname','MName')
+            ->where('id', $form['id'] )
+            ->get();
+            $swornData ="";
+
+            $sworn_unmarried = db::table($this->hr_db . '.sworn_unmarried')
+            ->where('mainID', $form['id'] )
+            ->get();
+            // $swornformx ="";
+
+            $asset_total = db::table($this->hr_db . '.sworn_assets')
+            ->select("*",
+                    db::raw('sum(ifnull(AcquisitionCost, 0)) as TotalassetA'),
+                    'sworn_assets.id')
+            ->where('mainID', $form['id'] )
+            ->get();
+
+            $setAA = "";
+
+            foreach ($asset_total as $key => $value) {
+                $setAA = $value;
+            }
+
+            $sworn_assets = db::table($this->hr_db . '.sworn_assets')
+            ->skip(0)
+            ->take(4)
+            ->where('mainID', $form['id'] )
+            ->get();
+
+
+
+            $assetB_total =  db::table($this->hr_db . '.sworn_assetsb')
+            ->select("*",
+                    db::raw('sum(ifnull(AcquisitionCostamount, 0)) as TotalassetB'),
+                    'sworn_assetsb.id')
+            ->where('mainID', $form['id'] )
+            ->get();
+
+             $setBBB = "";
+
+            foreach ($assetB_total as $key => $value) {
+                $setBBB = $value;
+            }
+
+            $totalAllAsset = 0;
+            $totalallSet = $totalAllAsset + $setAA->TotalassetA + $setBBB->TotalassetB;
+
+            $sworn_assetsb = db::table($this->hr_db . '.sworn_assetsb')
+            ->skip(0)
+            ->take(4)
+            ->where('mainID', $form['id'] )
+            ->get();
+
+            $liabilitiess =  db::table($this->hr_db . '.sworn_liabilities')
+            ->select("*",
+                    db::raw('sum(ifnull(Ounstandingbalance, 0)) as Ounstandingbalance'),
+                    'sworn_liabilities.id')
+            ->where('mainID', $form['id'] )
+            ->get();
+
+            $laiblts = "";
+            foreach ($liabilitiess as $key => $value) {
+                $laiblts = $value;
+            }
+
+
+            $sworn_liabilities = db::table($this->hr_db . '.sworn_liabilities')
+            ->skip(0)
+            ->take(4)
+            ->where('mainID', $form['id'] )
+            ->get();
+
+            $sworn_businessinterest = db::table($this->hr_db . '.sworn_businessinterest')
+            ->skip(0)
+            ->take(4)
+            ->where('mainID', $form['id'] )
+            ->get();
+
+            $sworn_relatives = db::table($this->hr_db . '.sworn_relatives')
+            ->where('mainID', $form['id'] )
+            ->get();
+
+        foreach ($sworn as $key => $value) {
+                $swornData= $value;
+            }
+
+            $signatory = db::table($this->hr_db . '.sworn_signatory')
+            ->where('mainID', $form['id'] )
+            ->get();
+            $signatoryxx = "";
+
+            foreach ($signatory as $key => $value) {
+                $signatoryxx= $value;
+            }
+
         $unmarried ="";
         foreach ($sworn_unmarried as $key => $value) {
                 $unmarried .=' <tr>
@@ -411,70 +943,70 @@ public function __construct(GlobalController $global)
         foreach ($sworn_assets as $key => $value) {
             $assetsTOtal = $assetsTOtal + $value->AcquisitionCost;
                 $assets .= '<tr>
-                <td style="font-size:7pt;" height="30px" align="center">'. $value->description1.'</td>
-                <td style="font-size:7pt;" height="30px" align="center">'. $value->kind.'</td>
-                <td style="font-size:7pt;" height="30px" align="center">'. $value->exactLoc.'</td>
-                <td style="font-size:7pt;" height="30px" align="center">'. number_format($value->assessedValue, 2).'</td>
-                <td style="font-size:7pt;" height="30px" align="center">'. number_format($value->CurrentFair, 2).'</td>
-                <td style="font-size:7pt;" height="30px" align="center">'. $value->AcquisitionYear.'</td>
-                <td style="font-size:7pt;" height="30px" align="center">'. $value->AcquisitionMode.'</td>
-                <td style="font-size:7pt;" height="30px" align="center">'. number_format($value->AcquisitionCost, 2).'</td>
+                <td style="font-size:7pt;" align="center">'. $value->description1.'</td>
+                <td style="font-size:7pt;" align="center">'. $value->kind.'</td>
+                <td style="font-size:7pt;" align="center">'. $value->exactLoc.'</td>
+                <td style="font-size:7pt;" align="center">'. number_format($value->assessedValue, 2).'</td>
+                <td style="font-size:7pt;" align="center">'. number_format($value->CurrentFair, 2).'</td>
+                <td style="font-size:7pt;" align="center">'. $value->AcquisitionYear.'</td>
+                <td style="font-size:7pt;" align="center">'. $value->AcquisitionMode.'</td>
+                <td style="font-size:7pt;" align="center">'. number_format($value->AcquisitionCost, 2).'</td>
             </tr>';
             }
 
             if(count($sworn_assets)< 4){
                 for($i = count($sworn_assets); $i<4; $i++){
                     $assets .= '<tr>
-                <td style="font-size:7pt;" height="30px" align="center"></td>
-                <td style="font-size:7pt;" height="30px" align="center"></td>
-                <td style="font-size:7pt;" height="30px" align="center"></td>
-                <td style="font-size:7pt;" height="30px" align="center"></td>
-                <td style="font-size:7pt;" height="30px" align="center"></td>
-                <td style="font-size:7pt;" height="30px" align="center"></td>
-                <td style="font-size:7pt;" height="30px" align="center"></td>
-                <td style="font-size:7pt;" height="30px" align="center"></td>
+                <td style="font-size:7pt;" align="center"></td>
+                <td style="font-size:7pt;" align="center"></td>
+                <td style="font-size:7pt;" align="center"></td>
+                <td style="font-size:7pt;" align="center"></td>
+                <td style="font-size:7pt;" align="center"></td>
+                <td style="font-size:7pt;" align="center"></td>
+                <td style="font-size:7pt;" align="center"></td>
+                <td style="font-size:7pt;" align="center"></td>
             </tr>';
             }
         }
         $assetsb = "";
         $assestbTotal=0;
+        $Totalall = 0;
         foreach ($sworn_assetsb as $key => $value) {
             $assestbTotal= $assestbTotal + $value->AcquisitionCostamount;
+            $Totalall = $assetsTOtal + $assestbTotal;
                 $assetsb .= '<tr>
-                <td style="font-size:7pt;" height="30px" align="center">'. $value->Description2.'</td>
-                <td style="font-size:7pt;" height="30px" align="center">'. $value->YearAcquired.'</td>
-                <td style="font-size:7pt;" height="30px" align="center">'. number_format($value->AcquisitionCostamount,2).'</td>
+                <td style="font-size:7pt;" align="center">'. $value->Description2.'</td>
+                <td style="font-size:7pt;" align="center">'. $value->YearAcquired.'</td>
+                <td style="font-size:7pt;" align="center">'. number_format($value->AcquisitionCostamount,2).'</td>
             </tr>';
             }
 
              if(count($sworn_assetsb)< 4){
                 for($i = count($sworn_assetsb); $i<4; $i++){
                     $assetsb .= '<tr>
-                    <td style="font-size:7pt;" height="30px" align="center"></td>
-                    <td style="font-size:7pt;" height="30px" align="center"></td>
-                    <td style="font-size:7pt;" height="30px" align="center"></td>
+                    <td style="font-size:7pt;" align="center"></td>
+                    <td style="font-size:7pt;" align="center"></td>
+                    <td style="font-size:7pt;" align="center"></td>
                 </tr>';
             }
         }
 
         $liabilities = "";
         $liabilitiesTotal = 0;
-        $Totalall = 0;
         foreach ($sworn_liabilities as $key => $value) {
             $liabilitiesTotal = $liabilitiesTotal + $value->Ounstandingbalance;
-            $Totalall = $assetsTOtal + $assestbTotal - $liabilitiesTotal;
                 $liabilities .= '<tr>
-                <td style="font-size:7pt;" height="30px" align="center">'. $value->nature.'</td>
-                <td style="font-size:7pt;" height="30px" align="center">'. $value->NameCreditor.'</td>
-                <td style="font-size:7pt;" height="30px" align="center">'. number_format($value->Ounstandingbalance,2).'</td>
+                <td style="font-size:7pt;" align="center">'. $value->nature.'</td>
+                <td style="font-size:7pt;" align="center">'. $value->NameCreditor.'</td>
+                <td style="font-size:7pt;" align="center">'. number_format($value->Ounstandingbalance,2).'</td>
             </tr>';
             }
             if(count($sworn_liabilities)< 4){
                 for($i = count($sworn_liabilities); $i<4; $i++){
                     $liabilities .= '<tr>
-                <td style="font-size:7pt;" height="30px" align="center"></td>
-                <td style="font-size:7pt;" height="30px" align="center"></td>
-                <td style="font-size:7pt;" height="30px" align="center"></td>
+                <td style="font-size:7pt;" align="center"></td>
+                <td style="font-size:7pt;" align="center"></td>
+                <td style="font-size:7pt;" align="center"></td>
             </tr>';
             }
         }
@@ -482,19 +1014,19 @@ public function __construct(GlobalController $global)
         $business = "";
         foreach ($sworn_businessinterest as $key => $value) {
                 $business .= '<tr>
-                <td style="font-size:7pt;" height="30px" align="center">'. $value->NameEntity.'</td>
-                <td style="font-size:7pt;" height="30px" align="center">'. $value->BusinessAddress.'</td>
-                <td style="font-size:7pt;" height="30px" align="center">'. $value->NatureBusiness.'</td>
-                <td style="font-size:7pt;" height="30px" align="center">'. $value->DateAcqInt.'</td>
+                <td style="font-size:7pt;" align="center">'. $value->NameEntity.'</td>
+                <td style="font-size:7pt;" align="center">'. $value->BusinessAddress.'</td>
+                <td style="font-size:7pt;" align="center">'. $value->NatureBusiness.'</td>
+                <td style="font-size:7pt;" align="center">' . (!empty($value->DateAcqInt) ? (date_format(date_create($value->DateAcqInt), "Y")) : "") . '</td>
             </tr>';
             }
             if(count($sworn_businessinterest)< 4){
                 for($i = count($sworn_businessinterest); $i<4; $i++){
                     $business .= '<tr>
-                    <td style="font-size:7pt;" height="30px" align="center"></td>
-                    <td style="font-size:7pt;" height="30px" align="center"></td>
-                    <td style="font-size:7pt;" height="30px" align="center"></td>
-                    <td style="font-size:7pt;" height="30px" align="center"></td>
+                    <td style="font-size:7pt;" align="center"></td>
+                    <td style="font-size:7pt;" align="center"></td>
+                    <td style="font-size:7pt;" align="center"></td>
+                    <td style="font-size:7pt;" align="center"></td>
                 </tr>';
             }
         }
@@ -502,19 +1034,19 @@ public function __construct(GlobalController $global)
         $Relative = "";
         foreach ($sworn_relatives as $key => $value) {
                 $Relative .= '<tr>
-                <td style="font-size:7pt;" height="30px" align="center">'. $value->NameRelative.'</td>
-                <td style="font-size:7pt;" height="30px" align="center">'. $value->Relationship.'</td>
-                <td style="font-size:7pt;" height="30px" align="center">'. $value->Position1.'</td>
-                <td style="font-size:7pt;" height="30px" align="center">'. $value->NameAgency.'</td>
+                <td style="font-size:7pt;" align="center">'. $value->NameRelative.'</td>
+                <td style="font-size:7pt;" align="center">'. $value->Relationship.'</td>
+                <td style="font-size:7pt;" align="center">'. $value->Position1.'</td>
+                <td style="font-size:7pt;" align="center">'. $value->NameAgency.'</td>
             </tr>';
             }
             if(count($sworn_relatives)< 4){
                 for($i = count($sworn_relatives); $i<4; $i++){
                     $Relative .= '<tr>
-                <td style="font-size:7pt;" height="30px" align="center"></td>
-                <td style="font-size:7pt;" height="30px" align="center"></td>
-                <td style="font-size:7pt;" height="30px" align="center"></td>
-                <td style="font-size:7pt;" height="30px" align="center"></td>
+                <td style="font-size:7pt;" align="center"></td>
+                <td style="font-size:7pt;" align="center"></td>
+                <td style="font-size:7pt;" align="center"></td>
+                <td style="font-size:7pt;" align="center"></td>
             </tr>';
             }
         }
@@ -538,7 +1070,7 @@ public function __construct(GlobalController $global)
                 <tr>
                     <td width="20%"> </td>
                     <td width="15%" align="right"> As of </td>
-                    <td width="30%" style="border-bottom:1px solid black" align="center">April 30, 2022</td>
+                    <td width="30%" style="border-bottom:1px solid black" align="center">' . (!empty($swornData->dateAsOf) ? (date_format(date_create($swornData->dateAsOf), "M d, Y")) : "") . '</td>
                     <td width="35%"> </td>
                 </tr>
 
@@ -675,7 +1207,6 @@ public function __construct(GlobalController $global)
 
         <table width="100%" cellpadding="2">
                 <tr>
-                <br />
                     <td width="100%" style="border-bottom:1px solid black"></td>
                 </tr>
 
@@ -712,19 +1243,19 @@ public function __construct(GlobalController $global)
 
             <table width="100%" border="1" cellpadding="2">
             <tr>
-                <th  rowspan="2" style="font-size:7pt; background-color:grey;" align="center"> <b>DESCRIPTION</b> (e.g. lot, house and lot, condominium and improvements) </th>
-                <th  rowspan="2" style="font-size:7pt; background-color:grey;"  align="center"> <b> KIND</b> <br> (e.g. residential, commercial, industrial, agricultural and mixed use)</th>
-                <th  rowspan="2" style="font-size:8pt; background-color:grey;"  align="center"> <b> <br> EXACT LOCATION </b> </th>
-                <th  style="font-size:7pt; background-color:grey;"  align="center"><b> ASSESED VALUE </br></th>
-                <th  style="font-size:7pt; background-color:grey;"  align="center"><b> CURRENT FAIR MARKET VALUE </b></th>
-                <th  colspan="2" style="font-size:8pt; background-color:grey;"  align="center" height="30"><b> ACQUISITION </b></th>
-                <th  rowspan="2" style="font-size:8pt; background-color:grey;"  align="center"><b><br>  ACQUISITION COST </b></th>
+                <th  rowspan="2" style="font-size:7pt; background-color:#D3D3D3;" align="center"> <b>DESCRIPTION</b> (e.g. lot, house and lot, condominium and improvements) </th>
+                <th  rowspan="2" style="font-size:7pt; background-color:#D3D3D3;"  align="center"> <b> KIND</b> <br> (e.g. residential, commercial, industrial, agricultural and mixed use)</th>
+                <th  rowspan="2" style="font-size:8pt; background-color:#D3D3D3;"  align="center"> <b> <br> EXACT LOCATION </b> </th>
+                <th  style="font-size:7pt; background-color:#D3D3D3;"  align="center"><b> ASSESED VALUE </br></th>
+                <th  style="font-size:7pt; background-color:#D3D3D3;"  align="center"><b> CURRENT FAIR MARKET VALUE </b></th>
+                <th  colspan="2" style="font-size:8pt; background-color:#D3D3D3;"  align="center" height="30"><b> ACQUISITION </b></th>
+                <th  rowspan="2" style="font-size:8pt; background-color:#D3D3D3;"  align="center"><b><br>  ACQUISITION COST </b></th>
 
             </tr>
             <tr>
-                <td colspan="2" style="font-size:7pt; background-color:grey;" align="center">(As found in the Tax Declaration of Real Property)</td>
-                <td style="font-size:7pt; background-color:grey;"  align="center"><b><br> YEAR </b></td>
-                <td style="font-size:7pt; background-color:grey;"  align="center"><b><br> MODE </b></td>
+                <td colspan="2" style="font-size:7pt; background-color:#D3D3D3;" align="center">(As found in the Tax Declaration of Real Property)</td>
+                <td style="font-size:7pt; background-color:#D3D3D3;"  align="center"><b><br> YEAR </b></td>
+                <td style="font-size:7pt; background-color:#D3D3D3;"  align="center"><b><br> MODE </b></td>
             </tr>
             '.$assets.'
         </table>
@@ -734,7 +1265,7 @@ public function __construct(GlobalController $global)
             <tr>
                 <td width="76%"></td>
                 <td width="9%" style="font-size:10pt;"><b> Subtotal:</b></td>
-                <td width="15%" style="border-bottom:1px solid black;" align="center">'.number_format($assetsTOtal,2).'</td>
+                <td width="15%" style="border-bottom:1px solid black;" align="center">'.number_format($setAA->TotalassetA,2).'</td>
             </tr>
         </table>
 
@@ -748,9 +1279,9 @@ public function __construct(GlobalController $global)
         <br />
         <table width="100%" border="1" cellpadding="2">
         <tr>
-            <th style="font-size:8pt; background-color:grey;" height="30px"  align="center"><b> DESCRIPTION </b></th>
-            <th style="font-size:8pt; background-color:grey;"  align="center"><b> YEAR ACQUIRED </b></th>
-            <th style="font-size:8pt; background-color:grey;"  align="center"><b> ACQUISITION COST/AMOUNT </b></th>
+            <th style="font-size:8pt; background-color:#D3D3D3;" height="30px"  align="center"><b> DESCRIPTION </b></th>
+            <th style="font-size:8pt; background-color:#D3D3D3;"  align="center"><b> YEAR ACQUIRED </b></th>
+            <th style="font-size:8pt; background-color:#D3D3D3;"  align="center"><b> ACQUISITION COST/AMOUNT </b></th>
         </tr>
             '.$assetsb.'
     </table>
@@ -758,8 +1289,392 @@ public function __construct(GlobalController $global)
             <tr>
                 <td width="76%"></td>
                 <td width="9%" style="font-size:10pt;"><b> Subtotal:</b></td>
-                <td width="15%" style="border-bottom:1px solid black;" align="center">'.number_format($assestbTotal,2).'</td>
+                <td width="15%" style="border-bottom:1px solid black;" align="center">'.number_format($setBBB->TotalassetB,2).'</td>
 
+            </tr>
+
+            <tr>
+                <td width="85%" style="font-size:10pt;" align="right"><b>TOTAL ASSETS (a+b)</b></td>
+                <td width="15%" style="border-bottom:1px solid black;" align="center">'.number_format($totalallSet,2).'</td>
+            </tr>
+            <tr>
+                <td width="76%" ></td>
+                <td width="9%" style="font-size:10pt;"></td>
+                <td width="15%" style="border-top:1px solid black;" ></td>
+            </tr>
+        </table>
+
+
+
+
+
+
+    </table>';
+            // PDF::SetTitle('Sworn Statement of Assets, Liabilities and Net Worth');
+            // PDF::SetFont('helvetica', '', 8);
+            // PDF::AddPage('P');
+            // PDF::writeHTML($Template, true, 0, true, 0);
+            // PDF::Output(public_path() . '/prints.pdf', 'F');
+            // $full_path = public_path() . '/prints.pdf';
+            // if (\File::exists(public_path() . '/prints.pdf')) {
+            //     $file = \File::get($full_path);
+            //     $type = \File::mimeType($full_path);
+            //     $response = \Response::make($file, 200);
+            //     $response->header("Content-Type", $type);
+            //     return $response;
+            // }
+            return $Template;
+
+        } catch (\Exception $e) {
+            return response()->json(new JsonResponse(['errormsg' => $e, 'status' => 'error']));
+        }
+
+       }
+
+
+
+       public function printdtls1($request){
+        try{
+
+            $form = $request->itm;
+            $sworn = db::table($this->hr_db .'.sworn_table')
+            ->select('*','id','Fname','Firstname','MName')
+            ->where('id', $form['id'] )
+            ->get();
+            $swornData ="";
+
+
+        foreach ($sworn as $key => $value) {
+            $swornData= $value;
+        }
+
+        $asset_total = db::table($this->hr_db . '.sworn_assets')
+        ->select("*",
+                db::raw('sum(ifnull(AcquisitionCost, 0)) as TotalassetA'),
+                'sworn_assets.id')
+        ->where('mainID', $form['id'] )
+        ->get();
+
+        $setAA = "";
+
+        foreach ($asset_total as $key => $value) {
+
+            $setAA = $value;
+        }
+
+        $assetB_total =  db::table($this->hr_db . '.sworn_assetsb')
+        ->select("*",
+                db::raw('sum(ifnull(AcquisitionCostamount, 0)) as TotalassetB'),
+                'sworn_assetsb.id')
+        ->where('mainID', $form['id'] )
+        ->get();
+
+         $setBBB = "";
+
+        foreach ($assetB_total as $key => $value) {
+            $setBBB = $value;
+        }
+
+        $totalAllAsset = 0;
+        $totalallSet = $totalAllAsset + $setAA->TotalassetA + $setBBB->TotalassetB;
+
+
+        $liabilitiess =  db::table($this->hr_db . '.sworn_liabilities')
+        ->select("*",
+                db::raw('sum(ifnull(Ounstandingbalance, 0)) as Ounstandingbalance'),
+                'sworn_liabilities.id')
+        ->where('mainID', $form['id'] )
+        ->get();
+
+        $laiblts = "";
+        foreach ($liabilitiess as $key => $value) {
+            $laiblts = $value;
+        }
+
+        $asset_total = db::table($this->hr_db . '.sworn_assets')
+        ->select("*",
+                db::raw('sum(ifnull(AcquisitionCost, 0)) as TotalassetA'),
+                'sworn_assets.id')
+        ->where('mainID', $form['id'] )
+        ->get();
+
+        $setAA = "";
+        $IfNaa = "";
+        foreach ($asset_total as $key => $value) {
+            $setAA = $value;
+        }
+
+
+        $sworn_assets = db::table($this->hr_db . '.sworn_assets')
+            ->where('mainID', $form['id'] )
+            ->skip(4)
+            ->take(4)
+            ->get();
+
+            $assets = "";
+        $assetsTOtal=0;
+        foreach ($sworn_assets as $key => $value) {
+            $IfNaa = $setAA->AcquisitionCost;
+
+            log::debug($IfNaa);
+
+            $assetsTOtal = $assetsTOtal + $value->AcquisitionCost;
+                $assets .= '<tr>
+                <td style="font-size:7pt;" height="30px" align="center">'. $value->description1.'</td>
+                <td style="font-size:7pt;" height="30px" align="center">'. $value->kind.'</td>
+                <td style="font-size:7pt;" height="30px" align="center">'. $value->exactLoc.'</td>
+                <td style="font-size:7pt;" height="30px" align="center">'. number_format($value->assessedValue, 2).'</td>
+                <td style="font-size:7pt;" height="30px" align="center">'. number_format($value->CurrentFair, 2).'</td>
+                <td style="font-size:7pt;" height="30px" align="center">'. $value->AcquisitionYear.'</td>
+                <td style="font-size:7pt;" height="30px" align="center">'. $value->AcquisitionMode.'</td>
+                <td style="font-size:7pt;" height="30px" align="center">'. number_format($value->AcquisitionCost, 2).'</td>
+            </tr>';
+            }
+
+            if(count($sworn_assets)< 4){
+                for($i = count($sworn_assets); $i<4; $i++){
+                    $assets .= '<tr>
+                <td style="font-size:7pt;" height="30px" align="center"></td>
+                <td style="font-size:7pt;" height="30px" align="center"></td>
+                <td style="font-size:7pt;" height="30px" align="center"></td>
+                <td style="font-size:7pt;" height="30px" align="center"></td>
+                <td style="font-size:7pt;" height="30px" align="center"></td>
+                <td style="font-size:7pt;" height="30px" align="center"></td>
+                <td style="font-size:7pt;" height="30px" align="center"></td>
+                <td style="font-size:7pt;" height="30px" align="center"></td>
+            </tr>';
+            }
+        }
+
+        $sworn_assetsb = db::table($this->hr_db . '.sworn_assetsb')
+        ->where('mainID', $form['id'] )
+        ->skip(4)
+        ->take(4)
+        ->get();
+        $IfNaaB = "";
+        $assetsb = "";
+        $assestbTotal=0;
+        foreach ($sworn_assetsb as $key => $value) {
+            $IfNaaB = $setBBB->TotalassetB;
+
+            $assestbTotal= $assestbTotal + $value->AcquisitionCostamount;
+                $assetsb .= '<tr>
+                <td style="font-size:7pt;" align="center">'. $value->Description2.'</td>
+                <td style="font-size:7pt;" align="center">'. $value->YearAcquired.'</td>
+                <td style="font-size:7pt;" align="center">'. number_format($value->AcquisitionCostamount,2).'</td>
+            </tr>';
+            }
+
+             if(count($sworn_assetsb)< 4){
+                for($i = count($sworn_assetsb); $i<4; $i++){
+                    $assetsb .= '<tr>
+                    <td style="font-size:7pt;" align="center"></td>
+                    <td style="font-size:7pt;" align="center"></td>
+                    <td style="font-size:7pt;" align="center"></td>
+                </tr>';
+            }
+        }
+
+        $sworn_liabilities = db::table($this->hr_db . '.sworn_liabilities')
+        ->skip(4)
+        ->take(4)
+        ->where('mainID', $form['id'] )
+        ->get();
+
+
+        $liabilities = "";
+        $IfnaaLaib = "";
+        $liabilitiesTotal = 0;
+        foreach ($sworn_liabilities as $key => $value) {
+            $IfnaaLaib = $laiblts->Ounstandingbalance;
+            $liabilitiesTotal = $liabilitiesTotal + $value->Ounstandingbalance;
+                $liabilities .= '<tr>
+                <td style="font-size:7pt;" align="center">'. $value->nature.'</td>
+                <td style="font-size:7pt;" align="center">'. $value->NameCreditor.'</td>
+                <td style="font-size:7pt;" align="center">'. number_format($value->Ounstandingbalance,2).'</td>
+            </tr>';
+            }
+            if(count($sworn_liabilities)< 4){
+                for($i = count($sworn_liabilities); $i<4; $i++){
+                    $liabilities .= '<tr>
+                <td style="font-size:7pt;" align="center"></td>
+                <td style="font-size:7pt;" align="center"></td>
+                <td style="font-size:7pt;" align="center"></td>
+            </tr>';
+            }
+        }
+
+        $sworn_businessinterest = db::table($this->hr_db . '.sworn_businessinterest')
+        ->skip(4)
+        ->take(4)
+        ->where('mainID', $form['id'] )
+        ->get();
+
+        $business = "";
+        foreach ($sworn_businessinterest as $key => $value) {
+                $business .= '<tr>
+                <td style="font-size:7pt;" align="center">'. $value->NameEntity.'</td>
+                <td style="font-size:7pt;" align="center">'. $value->BusinessAddress.'</td>
+                <td style="font-size:7pt;" align="center">'. $value->NatureBusiness.'</td>
+                <td style="font-size:7pt;" align="center">'. $value->DateAcqInt.'</td>
+            </tr>';
+            }
+            if(count($sworn_businessinterest)< 4){
+                for($i = count($sworn_businessinterest); $i<4; $i++){
+                    $business .= '<tr>
+                    <td style="font-size:7pt;" align="center"></td>
+                    <td style="font-size:7pt;" align="center"></td>
+                    <td style="font-size:7pt;" align="center"></td>
+                    <td style="font-size:7pt;" align="center"></td>
+                </tr>';
+            }
+        }
+
+
+
+
+
+            $Template='<table style="width:100%;">
+            <tr>
+                <td width="100%" align="right" style="font-size:7pt">Revised as of January 2015</td>
+            </tr>
+            <tr>
+                <td width="100%" align="right" style="font-size:7pt">Per CSC Resolution No. 1500088</td>
+            </tr>
+            <tr>
+                <td width="100%" align="right" style="font-size:7pt">Promulgated on January 23,2015</td>
+            </tr>
+            <tr>
+               <td style="font:11pt;" align="center">
+                    <b>SWORN STATEMENT OF ASSETS, LIABILITIES AND NET WORTH</b>
+                    <br />
+                 <table width="100%">
+
+                <tr>
+                    <td width="20%"> </td>
+                    <td width="15%" align="right"> As of </td>
+                    <td width="30%" style="border-bottom:1px solid black" align="center">' . (!empty($swornData->dateAsOf) ? (date_format(date_create($swornData->dateAsOf), "M d, Y")) : "") . '</td>
+                    <td width="35%"> </td>
+                </tr>
+
+                 </table>
+               </td>
+            </tr>
+
+        <table width="100%">
+            <tr>
+                <td width="12%"  style="font-size:8pt"><b> DECLARANT: </b></td>
+                <td style="border-bottom: 1px solid black; font-size:8pt" width="40%" align="center">'.$swornData->Fname.', &nbsp; &nbsp;&nbsp;&nbsp; '.$swornData->Firstname.' &nbsp; &nbsp;&nbsp;&nbsp; '.$swornData->MName.'</td>
+                <td width="5%"> </td>
+                <td width="18%"  style="font-size:8pt"><b> POSITION: </b></td>
+                <td style="border-bottom: 1px solid black; font-size:8pt" width="25%" align="center">'.$swornData->position.'</td>
+            </tr>
+        </table>
+        <table width="60%">
+            <tr>
+                <td width="20%"></td>
+                <td width="27%" style="font-size:8pt;">
+                 (Family Name)
+                </td>
+
+                <td width="27%" style="font-size:8pt;">(First Name)</td>
+                <td width="12%" style="font-size:8pt;">(M.I)</td>
+                <td width="9%"> </td>
+                <td width="30%" style="font-size:8pt;"><b> AGENCY/OFFICE: </b></td>
+                <td style="border-bottom: 1px solid black; font-size:8pt" width="42%" align="center">'.$swornData->AOffice.'</td>
+            </tr>
+
+        </table>
+        <table>
+            <tr>
+                <td width="100%" style="border-bottom:2px solid black"></td>
+            </tr>
+        </table>
+
+
+        <br />
+        <br/>
+
+
+            <table style="width=100%;">
+                <tr>
+
+                    <th width="100%" style="font-size:10pt;" align="center">
+                        <b><u>ASSETS, LIABILITIES AND NETWORTH</u></b>
+                    </th>
+
+
+                </tr>
+
+                <tr>
+                    <td width="20%" style="font-size:10pt;"><b>1. ASSETS    </b></td>
+                </tr>
+                <tr>
+                    <td width="2%"></td>
+                    <td width="20%" style="font-size:10pt;"><b>a. &nbsp;&nbsp; Real Properties*    </b></td>
+                </tr>
+
+            </table>
+
+            <table width="100%" border="1" cellpadding="2">
+            <tr>
+                <th  rowspan="2" style="font-size:7pt; background-color:#D3D3D3;" align="center"> <b>DESCRIPTION</b> (e.g. lot, house and lot, condominium and improvements) </th>
+                <th  rowspan="2" style="font-size:7pt; background-color:#D3D3D3;"  align="center"> <b> KIND</b> <br> (e.g. residential, commercial, industrial, agricultural and mixed use)</th>
+                <th  rowspan="2" style="font-size:8pt; background-color:#D3D3D3;"  align="center"> <b> <br> EXACT LOCATION </b> </th>
+                <th  style="font-size:7pt; background-color:#D3D3D3;"  align="center"><b> ASSESED VALUE </br></th>
+                <th  style="font-size:7pt; background-color:#D3D3D3;"  align="center"><b> CURRENT FAIR MARKET VALUE </b></th>
+                <th  colspan="2" style="font-size:8pt; background-color:#D3D3D3;"  align="center" height="30"><b> ACQUISITION </b></th>
+                <th  rowspan="2" style="font-size:8pt; background-color:#D3D3D3;"  align="center"><b><br>  ACQUISITION COST </b></th>
+
+            </tr>
+            <tr>
+                <td colspan="2" style="font-size:7pt; background-color:#D3D3D3;" align="center">(As found in the Tax Declaration of Real Property)</td>
+                <td style="font-size:7pt; background-color:#D3D3D3;"  align="center"><b><br> YEAR </b></td>
+                <td style="font-size:7pt; background-color:#D3D3D3;"  align="center"><b><br> MODE </b></td>
+            </tr>
+
+            '.$assets.'
+
+        </table>
+        <br />
+
+        <table>
+            <tr>
+                <td width="76%"></td>
+                <td width="9%" style="font-size:10pt;"><b> Subtotal:</b></td>
+                <td width="15%" style="border-bottom:1px solid black;" align="center">'.$IfNaa .'</td>
+            </tr>
+        </table>
+
+        <table>
+            <tr>
+                <td width="2%"></td>
+                <td width="30%" style="font-size:10pt;"><b>b. &nbsp;&nbsp; Personal Properties* </b></td>
+            </tr>
+        </table>
+        <br />
+        <br />
+        <table width="100%" border="1" cellpadding="2">
+        <tr>
+            <th style="font-size:8pt; background-color:#D3D3D3;" height="30px"  align="center"><b> DESCRIPTION </b></th>
+            <th style="font-size:8pt; background-color:#D3D3D3;"  align="center"><b> YEAR ACQUIRED </b></th>
+            <th style="font-size:8pt; background-color:#D3D3D3;"  align="center"><b> ACQUISITION COST/AMOUNT </b></th>
+        </tr>
+
+        '.$assetsb.'
+
+    </table>
+        <table>
+            <tr>
+                <td width="76%"></td>
+                <td width="9%" style="font-size:10pt;"><b> Subtotal:</b></td>
+                <td width="15%" style="border-bottom:1px solid black;" align="center">'.$IfNaaB.'</td>
+
+            </tr>
+            <tr>
+                <td width="41%"></td>
+                <td width="44%" align="right" style="font-size:10pt;"><b>TOTAL ASSETS (a+b):</b></td>
+                <td width="15%" style="border-bottom:1px solid black;" align="center">'.number_format($totalallSet, 2).'</td>
             </tr>
             <tr>
                 <td width="76%" ></td>
@@ -780,32 +1695,28 @@ public function __construct(GlobalController $global)
         </table>
         <table width="100%" border="1" cellpadding="2">
         <tr>
-            <th style="font-size:8pt; background-color:grey;" height="20px"  align="center"><b> NATURE </b></th>
-            <th style="font-size:8pt; background-color:grey;"  align="center"><b> NAME OF CREDITORS </b></th>
-            <th style="font-size:8pt; background-color:grey;"  align="center"><b> OUTSTANDING BALANCE </b></th>
+            <th style="font-size:8pt; background-color:#D3D3D3;" height="20px"  align="center"><b> NATURE </b></th>
+            <th style="font-size:8pt; background-color:#D3D3D3;"  align="center"><b> NAME OF CREDITORS </b></th>
+            <th style="font-size:8pt; background-color:#D3D3D3;"  align="center"><b> OUTSTANDING BALANCE </b></th>
         </tr>
-            '.$liabilities.'
+
+        '.$liabilities.'
+
     </table>
 
         <table>
         <tr><br />
-            <td width="76%"></td>
-            <td width="9%" style="font-size:10pt;"><b> Subtotal:</b></td>
-            <td width="15%" style="border-bottom:1px solid black;" align="center">'.number_format($liabilitiesTotal,2).'</td>
+            <td width="85%" align="right" style="font-size:10pt;"><b> TOTAL LIABILITIES:</b></td>
+            <td width="15%" style="border-bottom:1px solid black;" align="center">'.$IfnaaLaib.'</td>
+        </tr>
+        <br/>
+        <tr>
+            <td width="100%" style="border-bottom:2px solid black"></td>
         </tr>
 
-        <tr>
-            <td width="41%"></td>
-            <td width="44%" style="font-size:10pt;"><b> NET WORTH: Total Assets less Total Liabilities =</b></td>
-            <td width="15%" style="border-bottom:1px solid black;" align="center">'.number_format($Totalall,2).'</td>
-        </tr>
-        <tr>
-            <td width="2%"></td>
-            <td width="50%" style="font-size:10pt;"><i> * Additional sheet/s may be used, if necessary.</i></td>
-
-        </tr>
         </table>
-
+        <br/>
+        <br/>
         <table style="width=100%;">
         <tr>
         <br />
@@ -816,176 +1727,43 @@ public function __construct(GlobalController $global)
                 <b> BUSINESS INTERESTS AND FINANCIAL CONNECTIONS</b>
             </th>
         </tr>
-        <tr>
-            <td width="20%"></td>
-            <td width="60%" align="center" style="font-size:8pt;" >
-            <i>(of Declarant/Declarants spouse/ Unmarried Children Below Eighteen (18)years of Age Living in Declarants Household)</i>
-            </td>
-            <td width="20%"></td>
-        </tr>
-        <tr>
-            <td width="20%"></td>
-            <td width="60%" align="center" style="font-size:8pt;" >
-            <i><input type="checkbox" check="true" name="1" value="1"><b> I/We do not have any business interest or financial connection. </b></i>
-            </td>
-            <td width="20%"></td>
-        </tr>
+
         </table>
     <br />
     <br />
     <table width="100%" border="1" cellpadding="2">
         <tr>
-            <th  style="font-size:7pt; background-color:grey;"  align="center"><b> NAME OF ENTITY/BUSINESS ENTERPRISE </b></th>
-            <th  style="font-size:7pt; background-color:grey;"  align="center"><b> BUSINESS ADDRESS </b></th>
-            <th  style="font-size:7pt; background-color:grey;"  align="center"><b> NATURE OF BUSINESS INTEREST &/OR FINANCIAL CONNECTION </b></th>
-            <th  style="font-size:7pt; background-color:grey;"  align="center"><b> DATE OF ACQUISITION OF INTEREST OR CONNECTION </b></th>
+            <th  style="font-size:7pt; background-color:#D3D3D3;"  align="center"><b> NAME OF ENTITY/BUSINESS ENTERPRISE </b></th>
+            <th  style="font-size:7pt; background-color:#D3D3D3;"  align="center"><b> BUSINESS ADDRESS </b></th>
+            <th  style="font-size:7pt; background-color:#D3D3D3;"  align="center"><b> NATURE OF BUSINESS INTEREST &/OR FINANCIAL CONNECTION </b></th>
+            <th  style="font-size:7pt; background-color:#D3D3D3;"  align="center"><b> DATE OF ACQUISITION OF INTEREST OR CONNECTION </b></th>
         </tr>
-            '.$business.'
-    </table>
-    <br />
-    <br />
-    <table style="width=100%;">
-    <tr>
-    <br>
 
-    <th style="font-size:10pt;" align="center">
-            <b> RELATIVES IN THE GOVERNMENT SERVICE</b>
-        </th>
-    </tr>
-    <tr>
-        <td width="20%"></td>
-        <td width="60%" align="center" style="font-size:8pt;" >
-        <i>(Within the Fourth Degree of Consanguiniy or Affinity. Include also Bilas,Balae and Inso)</i>
-        </td>
-        <td width="20%"></td>
-    </tr>
-    <tr>
-        <td width="20%"></td>
-        <td width="60%" align="center" style="font-size:8pt;" >
-        <i><input type="checkbox" check="true" name="1" value="1"><b> I/We do not know of any relative/s in the government service) </b></i>
-        </td>
-        <td width="20%"></td>
-    </tr>
-    </table>
-
-    <br />
-    <br />
-
-    <table width="100%" border="1" cellpadding="2">
-            <tr>
-
-                <th  style="font-size:7pt; background-color:grey;"  align="center"><b> NAME OF RELATIVE </b></th>
-                <th  style="font-size:7pt; background-color:grey;"  align="center"><b> RELATIONSHIP </b></th>
-                <th  style="font-size:7pt; background-color:grey;"  align="center"><b>  POSITION </b></th>
-                <th  style="font-size:7pt; background-color:grey;"  align="center"><b> NAME OF AGENCY/OFFICE AND ADDRESS </b></th>
-            </tr>
-            '.$Relative.'
-    </table>
-
-    <br />
-
-    <p style="font-size:10pt; text-align:justify"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; I hereby certify that these are true and correct statements of my assets, liabilities, net worth,
-     business interests and financial connections, including those of my spouse ad unmarried children below eigthteen (18)
-     years of age living in my household, and that to the best of my knowledge, the above-enumerated are names of my relatives in the government within the fourth civil degree of consanguinity or affinity. </p>
-
-
-    <p style="font-size:10pt; text-align:justify"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-        &nbsp;&nbsp;&nbsp;&nbsp;
-        I hereby authorize the Ombudsman or his/her duly authorized representative
-        to obtain and secure from all appropriate government agencies, including the Bureau of Internal Revenue such to include those of my spouse and unmarried children below 18 years of age living with me in my household covering prvious years to include the year I first assumed office in government. </p>
-
-        <table width="100%">
-        <tr>
-            <td width="9%" align="left" style="font-size:9pt;"> Date: </td>
-            <td width="30%" style="border-bottom:1px solid black"> </td>
-        </tr>
-    </table>
-    <table width="100%">
-        <tr>
-        <br>
-        <td width="45%" align="left" style="font-size:7pt; border-bottom:1px solid black"></td>
-        <td width="10%"> </td>
-        <td width="45%" align="left" style="font-size:7pt; border-bottom:1px solid black"></td>
-
-        </tr>
-    </table>
-
-    <table width="100%">
-    <tr>
-
-        <td width="45%" align="left" style="font-size:7pt;" align="center">(Signature of Declarant)</td>
-        <td width="10%"> </td>
-        <td width="45%" align="left" style="font-size:7pt;" align="center"> (Signature of Co-Declarant/Spouse) </td>
-
-    </tr>
-    </table>
-
-    <table width="100%">
-
-    <tr>
-    <br>
-        <td width="18%" style="font-size:8pt"> Government Issued ID: </td>
-        <td width="27%" align="left" style="font-size:7pt; border-bottom:1px solid black"></td>
-        <td width="10%"></td>
-        <td width="18%" style="font-size:8pt"> Government Issued ID: </td>
-        <td width="27%" align="left" style="font-size:7pt; border-bottom:1px solid black"></td>
-
-    </tr>
-    <tr>
-        <td width="18%" style="font-size:8pt"> ID No.: </td>
-        <td width="27%" align="left" style="font-size:7pt; border-bottom:1px solid black"></td>
-        <td width="10%"></td>
-        <td width="18%" style="font-size:8pt"> ID No.:  </td>
-        <td width="27%" align="left" style="font-size:7pt; border-bottom:1px solid black"></td>
-
-    </tr>
-
-    <tr>
-        <td width="18%" style="font-size:8pt">Date Issued: </td>
-        <td width="27%" align="left" style="font-size:7pt; border-bottom:1px solid black"></td>
-        <td width="10%"></td>
-        <td width="18%" style="font-size:8pt"> Date Issued:  </td>
-        <td width="27%" align="left" style="font-size:7pt; border-bottom:1px solid black"></td>
-
-    </tr>
-
-    </table>
-
-    <table width="100%">
-    <tr>
-    <br />
-        <td width="42%" style="font-size:10pt"><b> &nbsp;&nbsp;&nbsp; SUBSCRIBED AND SWORN</b> to before me this  </td>
-        <td width="5%" style="border-bottom:1px solid black"></td>
-        <td width="6%"> day of</td>
-        <td width="6%" style="border-bottom:1px solid black"> </td>
-        <td width="40%" style="font-size:10pt">, affiant exhibiting to me the above-stated </td>
-        </tr>
-    <tr>
-
-        <td style="font-size:10pt"> government issued identification card. </td>
-
-    </tr>
+        '.$business.'
     </table>
 
     </table>';
-            PDF::SetTitle('Sworn Statement of Assets, Liabilities and Net Worth');
-            PDF::SetFont('helvetica', '', 8);
-            PDF::AddPage('P');
-            PDF::writeHTML($Template, true, 0, true, 0);
-            PDF::Output(public_path() . '/prints.pdf', 'F');
-            $full_path = public_path() . '/prints.pdf';
-            if (\File::exists(public_path() . '/prints.pdf')) {
-                $file = \File::get($full_path);
-                $type = \File::mimeType($full_path);
-                $response = \Response::make($file, 200);
-                $response->header("Content-Type", $type);
-                return $response;
-            }
+            // PDF::SetTitle('Sworn Statement of Assets, Liabilities and Net Worth');
+            // PDF::SetFont('helvetica', '', 8);
+            // PDF::AddPage('P');
+            // PDF::writeHTML($Template, true, 0, true, 0);
+            // PDF::Output(public_path() . '/prints.pdf', 'F');
+            // $full_path = public_path() . '/prints.pdf';
+            // if (\File::exists(public_path() . '/prints.pdf')) {
+            //     $file = \File::get($full_path);
+            //     $type = \File::mimeType($full_path);
+            //     $response = \Response::make($file, 200);
+            //     $response->header("Content-Type", $type);
+            //     return $response;
+            // }
+            return $Template;
 
         } catch (\Exception $e) {
             return response()->json(new JsonResponse(['errormsg' => $e, 'status' => 'error']));
         }
 
        }
+
+
 
 }
