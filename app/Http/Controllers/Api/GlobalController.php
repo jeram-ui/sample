@@ -108,7 +108,7 @@ class GlobalController extends Controller
     }
     public function getMeter()
     {
-        return config('variable.db_meter_reading');
+        return "db_meter_readings";
     }
     public function getPerformance()
     {

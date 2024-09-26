@@ -13,14 +13,14 @@ use PDF;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Hash;
 
-
-
 class MeterController extends Controller
 {
     protected $G;
     protected $meter;
     public function __construct(GlobalController $global)
     {
+
+        log::debug("load");
         $this->G = $global;
         $this->meter = $this->G->getMeter();
     }
@@ -33,7 +33,9 @@ class MeterController extends Controller
 
     public function billSched(Request $request)
     {
+        log::debug("gfjh");
         $list = db::select("SELECT * FROM  " . $this->meter . ".`tbl_bill_sched` WHERE `id` = '" . $request->id . "' AND guid = '" . $request->guid . "'");
+        log::debug($list);
         return response()->json(new JsonResponse($list));
     }
 
@@ -51,7 +53,9 @@ class MeterController extends Controller
 
     public function updatebillSched(Request $request)
     {
-        db::table(" . $this->meter . " . 'tbl_bill_sched')
+        log::debug("sada");
+        log::debug($this->meter);
+        db::table($this->meter . '.tbl_bill_sched')
             ->where('id', $request->id)
             ->update(['status' =>  $request->status]);
         return $this->G->success();
@@ -59,7 +63,7 @@ class MeterController extends Controller
 
     public function updatebilling(Request $request)
     {
-        db::table(" . $this->meter . " . 'tbl_water_bill_new')
+        db::table($this->meter . '.tbl_water_bill_new')
             ->where('bn_id', $request->bn_id)
             ->update([
                 'PRES RDNG' => $request->PRESRDNG,

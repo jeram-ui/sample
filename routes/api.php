@@ -21,10 +21,12 @@ Route::namespace('Api')->group(function () {
     Route::post('sendToken', 'AuthController@sendToken');
     Route::post('tokenValidate', 'AuthController@tokenValidate');
     Route::post('resetPassword', 'AuthController@resetPassword');
-    Route::post('billSched', 'Admin/MeterController@billSched');
-
-
-
+    Route::post('billSched', 'Admin\MeterController@billSched');
+    Route::post('updatebillSched', 'Admin\MeterController@updatebillSched');
+    Route::post('updatebilling', 'Admin\MeterController@updatebilling');
+    Route::post('loadBill', 'Admin\MeterController@loadBill');
+    Route::get('complaints', 'Admin\MeterController@complaints');
+    Route::get('wateRates', 'Admin\MeterController@wateRates');
     // create or update a subscription for a user
     Route::post('subscription', 'SubscriptionController@store');
 
