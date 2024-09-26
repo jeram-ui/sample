@@ -330,8 +330,8 @@ class eligibilityController extends Controller
 
 
             $description = DB::table($this->Bac . '.eligibility_main')
-                ->join($this->Bac . '.eligibility_remarks', 'eligibility_main.id', '=', 'eligibility_remarks.main_id')
-                ->join($this->budget . '.cto_budget_mode_pro', 'cto_budget_mode_pro.id', '=', 'eligibility_main.mop')
+                ->leftJoin($this->Bac . '.eligibility_remarks', 'eligibility_main.id', '=', 'eligibility_remarks.main_id')
+                ->leftJoin($this->budget . '.cto_budget_mode_pro', 'cto_budget_mode_pro.id', '=', 'eligibility_main.mop')
                 ->select('eligibility_main.*', 'cto_budget_mode_pro.mode_pro_desc', db::raw("GROUP_CONCAT(eligibility_remarks.`remarks` SEPARATOR '<br>') as remarks"))
                 ->where('eligibility_main.id', $id)
 
@@ -374,7 +374,7 @@ class eligibilityController extends Controller
         <th width="100%" align="center" style="font-size:10pt"> Province of Cebu </th>
       </tr>
       <tr>
-        <th width="100%" align="center" style="font-size:10pt"> City Government of Naga </th>
+        <th width="100%" align="center" style="font-size:10pt"> Minicipality of Dumanjug </th>
       </tr>
       <tr>
          <th width="100%" align="center" style="font-size:10pt"> Office of the City Mayor </th>
@@ -449,11 +449,6 @@ class eligibilityController extends Controller
             </tr>
             <br/>
             <br/>
-
-            <tr>
-                <td width="19%"> </td>
-                <td width="81%" style="font-size:11pt;text-align:justify"> ENGR.ARTHUR S. VILLAMOR </td>
-            </tr>
             <tr>
                 <td width="19%"> </td>
                 <td width="81%" style="font-size:11pt;text-align:justify"> BAC Chairman </td>

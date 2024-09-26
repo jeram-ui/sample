@@ -1256,13 +1256,12 @@ class projectController extends Controller
                 ->select('cto_general_billing.ref_id', 'or_number', 'or_date')
                 ->where('cto_general_billing.bill_description', 'like', 'bid')
                 ->where('cto_general_billing.status', '<>', 'CANCELLED');
-
             $list['observer'] = db::table($this->Bac . '.bacc_invitation_opening_bid')
                 ->join($this->Bac . '.bacc_proj', 'bacc_proj.id', '=', 'bacc_invitation_opening_bid.proj_id')
                 ->leftJoinSub($bill, 'bill', function ($join) {
                     $join->on('bacc_invitation_opening_bid.id', '=', 'bill.ref_id');
                 })
-                ->select('bacc_invitation_opening_bid.proj_id', 'bill.or_number', 'bill.or_date', 'bacc_invitation_opening_bid.doc_amount as bid_fees', 'bacc_proj.ABC as abc_amount', 'organization', 'business_id as id', 'business_name as name', db::raw('0 as bidsecurity'), db::raw('0 as bidamount'), db::raw('"" as rating'), db::raw('"" as remarks'), 'winner')
+                ->select('bacc_invitation_opening_bid.proj_id', 'bill.or_number', 'bill.or_date', 'bacc_invitation_opening_bid.doc_amount as bid_fees', 'bacc_proj.ABC as abc_amount', 'organization', 'business_id as id', 'business_name as name', db::raw('"" as or_no') , db::raw('"" as or_date') , db::raw('"" as security_type') , db::raw('"" as security_remarks'),db::raw('0 as bidsecurity'), db::raw('0 as bidamount'), db::raw('"" as rating'), db::raw('"" as remarks'), 'winner')
                 ->where('bacc_invitation_opening_bid.proj_id', $proj_id)
                 ->where('entry_type', 'SUPPLIER')
                 ->get();
@@ -1653,7 +1652,7 @@ class projectController extends Controller
             $datx = array(
                 'bac_proj_id' => $form['id'],
                 'declaration' => $forPrint['declaration'],
-    
+
             );
             // db::table("marriagecert_wifeinfo")->insert($datx);
 
@@ -1693,7 +1692,7 @@ class projectController extends Controller
                 // $numberInput = "";
                 foreach ($observer as $key => $value) {
                     // if(isset($value->ABC)){
-                    //     $numberInput = $value->ABC; 
+                    //     $numberInput = $value->ABC;
                     //     $locale = 'en_US';
                     //     $fmt = numfmt_create($locale, NumberFormatter::SPELLOUT);
                     //     $in_words = numfmt_format($fmt, $numberInput);
@@ -1959,7 +1958,7 @@ class projectController extends Controller
                                                 <td width="20%" align="center"><b> Bid Securing Declaration </b></td>
                                                 <td width="80%" align="left">'.$projectDatax->declaration.' </td>
                                             </tr>
-                                 
+
                                         </table>
                                         <tr>
                                             <td width="100%"> </td>
@@ -2001,11 +2000,11 @@ class projectController extends Controller
                                         <tr>
                                             <td width="100%"> </td>
                                         </tr>
-                                       
+
                                         '.$observe.'
                                         '. $organization.'
-                                  
-                               
+
+
             </table>';
             PDF::SetTitle('Abstract of Bids');
             PDF::SetFont('helvetica', '', 9);
@@ -2085,7 +2084,7 @@ class projectController extends Controller
             <br>
            ' . $title . '
             <br>
-            City of Naga, Cebu
+            Municipality of Dumanjug, Cebu
             <br>
             ' . $quarterly . '
             </th>
@@ -2132,88 +2131,88 @@ class projectController extends Controller
 
             $Template .= 'We hereby certify that we have reviewed the contents and hereby attest to the veracity and correctness of the data or information contained in this document. <br/><br/><br/><br/><br/><br/>';
 
-            $Template .= '<table width ="100%" cellspacing ="10">
-            <tr align="center">
-              <td>
-                <table align="center">
-                <tr align="center">
-                 <td>(sgd.)</td>
-                </tr>
-                <tr>
-                 <td style = "border-bottom: 1px solid black;">ENGR. ARTHUR S. VILLAMOR</td>
-                </tr>
-                <tr>
-                 <td>Chairman</td>
-                </tr>
-                </table>
-              </td>
-              <td>
-               <table>
-                <tr>
-                 <td>(sgd.)</td>
-                </tr>
-                <tr>
-                 <td style = "border-bottom: 1px solid black;">ENGR. JOVENO C. GARCIA</td>
-                </tr>
-                <tr>
-                 <td>Vice - Chairman</td>
-                </tr>
-               </table>
-              </td>
-              <td>
-               <table>
-                <tr>
-                 <td>(sgd.)</td>
-                </tr>
-                <tr>
-                 <td style = "border-bottom: 1px solid black;">ENGR. MA. ALPHA P. ALOJADO</td>
-                </tr>
-                <tr>
-                 <td>BAC Member</td>
-                </tr>
-               </table>
-              </td>
-              <td>
-               <table>
-                <tr>
-                 <td>(sgd.)</td>
-                </tr>
-                <tr>
-                 <td style = "border-bottom: 1px solid black;">CERTERIA V. BUENAVISTA</td>
-                </tr>
-                <tr>
-                 <td>BAC Member</td>
-                </tr>
-               </table>
-              </td>
-              <td>
-              <table>
-               <tr>
-                <td>(sgd.)</td>
-               </tr>
-               <tr>
-                <td style = "border-bottom: 1px solid black;">FLORDELIS L. ABABA</td>
-               </tr>
-               <tr>
-                <td>BAC Member</td>
-               </tr>
-              </table>
-             </td>
-             <td>
-             <table>
-              <tr>
-               <td>(sgd.)</td>
-              </tr>
-              <tr>
-               <td style = "border-bottom: 1px solid black;">ENGR. ARTHUR S. VILLAMOR</td>
-              </tr>
-              <tr>
-               <td>Chairman</td>
-              </tr>
-             </table>
-            </td>
-            </tr>
-            </table>';
+            // $Template .= '<table width ="100%" cellspacing ="10">
+            // <tr align="center">
+            //   <td>
+            //     <table align="center">
+            //     <tr align="center">
+            //      <td>(sgd.)</td>
+            //     </tr>
+            //     <tr>
+            //      <td style = "border-bottom: 1px solid black;">ENGR. ARTHUR S. VILLAMOR</td>
+            //     </tr>
+            //     <tr>
+            //      <td>Chairman</td>
+            //     </tr>
+            //     </table>
+            //   </td>
+            //   <td>
+            //    <table>
+            //     <tr>
+            //      <td>(sgd.)</td>
+            //     </tr>
+            //     <tr>
+            //      <td style = "border-bottom: 1px solid black;">ENGR. JOVENO C. GARCIA</td>
+            //     </tr>
+            //     <tr>
+            //      <td>Vice - Chairman</td>
+            //     </tr>
+            //    </table>
+            //   </td>
+            //   <td>
+            //    <table>
+            //     <tr>
+            //      <td>(sgd.)</td>
+            //     </tr>
+            //     <tr>
+            //      <td style = "border-bottom: 1px solid black;">ENGR. MA. ALPHA P. ALOJADO</td>
+            //     </tr>
+            //     <tr>
+            //      <td>BAC Member</td>
+            //     </tr>
+            //    </table>
+            //   </td>
+            //   <td>
+            //    <table>
+            //     <tr>
+            //      <td>(sgd.)</td>
+            //     </tr>
+            //     <tr>
+            //      <td style = "border-bottom: 1px solid black;">CERTERIA V. BUENAVISTA</td>
+            //     </tr>
+            //     <tr>
+            //      <td>BAC Member</td>
+            //     </tr>
+            //    </table>
+            //   </td>
+            //   <td>
+            //   <table>
+            //    <tr>
+            //     <td>(sgd.)</td>
+            //    </tr>
+            //    <tr>
+            //     <td style = "border-bottom: 1px solid black;">FLORDELIS L. ABABA</td>
+            //    </tr>
+            //    <tr>
+            //     <td>BAC Member</td>
+            //    </tr>
+            //   </table>
+            //  </td>
+            //  <td>
+            //  <table>
+            //   <tr>
+            //    <td>(sgd.)</td>
+            //   </tr>
+            //   <tr>
+            //    <td style = "border-bottom: 1px solid black;">ENGR. ARTHUR S. VILLAMOR</td>
+            //   </tr>
+            //   <tr>
+            //    <td>Chairman</td>
+            //   </tr>
+            //  </table>
+            // </td>
+            // </tr>
+            // </table>';
 
             PDF::writeHTML($Template, true, 0, true, 0);
             PDF::Output(public_path() . '/prints.pdf', 'F');
