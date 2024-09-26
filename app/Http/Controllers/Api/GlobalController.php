@@ -31,7 +31,7 @@ class GlobalController extends Controller
     }
     public function StaledChecks()
     {
-        $list = DB::select("CALL ".$this->getLGUDb().".jay_StaledChecks1_notification(NOW())");
+        $list = DB::select("CALL " . $this->getLGUDb() . ".jay_StaledChecks1_notification(NOW())");
         return response()->json(new JsonResponse($list));
     }
     public function printHeader($_department)
@@ -105,6 +105,10 @@ class GlobalController extends Controller
     public function getHRDb()
     {
         return config('variable.db_hr');
+    }
+    public function getMeter()
+    {
+        return config('variable.db_meter_reading');
     }
     public function getPerformance()
     {
@@ -415,7 +419,7 @@ class GlobalController extends Controller
                 $rettxt .= substr($decnum, 1, 1) . "/100";
             }
         }
-        return $rettxt ;
+        return $rettxt;
     }
 
     /**
@@ -601,7 +605,8 @@ class GlobalController extends Controller
     {
         $item = db::table('tbl_person_setup')->where('user_id', $id)->get();
         $data = array(
-            'isLogin' => 1, 'Login' => $this->serverdatetime()
+            'isLogin' => 1,
+            'Login' => $this->serverdatetime()
         );
         db::table('users')->where('id', '=', $id)->update($data);
         return response()->json(new JsonResponse($item));

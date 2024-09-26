@@ -21,6 +21,8 @@ Route::namespace('Api')->group(function () {
     Route::post('sendToken', 'AuthController@sendToken');
     Route::post('tokenValidate', 'AuthController@tokenValidate');
     Route::post('resetPassword', 'AuthController@resetPassword');
+    Route::post('billSched', 'Admin/MeterController@billSched');
+
 
 
     // create or update a subscription for a user
@@ -113,8 +115,6 @@ Route::namespace('Api')->group(function () {
             Route::get('userProfileAccess/{id}', 'UserAccessController@userProfileAccess');
             Route::get('departmentList', 'UserAccessController@departmentList');
             Route::post('DepartmentApproval', 'UserAccessController@DepartmentApproval');
-
-
         });
         Route::prefix('budgetContrl')->group(function () {
 
@@ -123,7 +123,6 @@ Route::namespace('Api')->group(function () {
             Route::put('removing/{id}', 'budgetcontrController@removing');
             Route::get('getDepartment', 'budgetcontrController@getDepartment');
             Route::get('getEmpRequest', 'budgetcontrController@getEmpRequest');
-
         });
 
         Route::prefix('budgetContrlJO')->group(function () {
@@ -133,7 +132,6 @@ Route::namespace('Api')->group(function () {
             Route::put('removing/{id}', 'budgetcontrJoController@removing');
             Route::get('getDepartment', 'budgetcontrJoController@getDepartment');
             Route::get('getEmpRequest', 'budgetcontrJoController@getEmpRequest');
-
         });
         Route::prefix('MayorApprvd')->group(function () {
 
@@ -142,7 +140,6 @@ Route::namespace('Api')->group(function () {
             Route::put('removing/{id}', 'mayorApprovalController@removing');
             Route::get('getDepartment', 'mayorApprovalController@getDepartment');
             Route::get('getEmpRequest', 'mayorApprovalController@getEmpRequest');
-
         });
 
         Route::prefix('BusinessOnline')->group(function () {
