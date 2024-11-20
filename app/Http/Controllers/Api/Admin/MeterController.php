@@ -30,15 +30,23 @@ class MeterController extends Controller
         $list = db::select("SELECT * FROM  " . $this->meter . ".`tbl_water_bill_new` WHERE `sched_id` = '" . $request->id . "'");
         return response()->json(new JsonResponse($list));
     }
-
+    public function loadBillElec(Request $request)
+    {
+        $list = db::select("SELECT * FROM  " . $this->meter . ".`tbl_electric_bill_new1` WHERE `sched_id` = '" . $request->id . "'");
+        return response()->json(new JsonResponse($list));
+    }
     public function billSched(Request $request)
     {
-        log::debug("gfjh");
         $list = db::select("SELECT * FROM  " . $this->meter . ".`tbl_bill_sched` WHERE `id` = '" . $request->id . "' AND guid = '" . $request->guid . "'");
         log::debug($list);
         return response()->json(new JsonResponse($list));
     }
-
+    public function billSchedElec(Request $request)
+    {
+        $list = db::select("SELECT * FROM  " . $this->meter . ".`tbl_bill_sched_elec` WHERE `id` = '" . $request->id . "' AND guid = '" . $request->guid . "'");
+        log::debug($list);
+        return response()->json(new JsonResponse($list));
+    }
     public function wateRates()
     {
         $list = db::select("SELECT * FROM  " . $this->meter . ".`tbl_cto_water_rates`");
@@ -53,9 +61,15 @@ class MeterController extends Controller
 
     public function updatebillSched(Request $request)
     {
-        log::debug("sada");
-        log::debug($this->meter);
         db::table($this->meter . '.tbl_bill_sched')
+            ->where('id', $request->id)
+            ->update(['status' =>  $request->status]);
+        return $this->G->success();
+    }
+
+    public function updatebillSchedElec(Request $request)
+    {
+        db::table($this->meter . '.tbl_bill_sched_elec')
             ->where('id', $request->id)
             ->update(['status' =>  $request->status]);
         return $this->G->success();
@@ -80,10 +94,34 @@ class MeterController extends Controller
             ]);
         return $this->G->success();
     }
+    public function updatebillingElec(Request $request)
+    {
+        db::table($this->meter . '.tbl_electric_bill_new1')
+            ->where('bn_id', $request->bn_id)
+            ->update([
+                'PRES RDNG' => $request->PRESRDNG,
+                'CONSUMPTION' => $request->CONSUMPTION,
+                'CURRENT BILL' => floatval($request->CURRENTBILL),
+                'OTHER CHARGE' => floatval($request->OTHERCHARGE),
+                'SC AMOUNT' => floatval($request->SCAMOUNT),
+                'TOTAL AMOUNT' => ($request->TOTALAMOUNT),
+                'DATE SAVED' => $request->DATESAVED,
+                'REMARKS' => $request->REMARKS,
+                'rem_id' => $request->rem_id,
+                'STATUS' => $request->STATUS,
+                'POWER COST AMOUNT' => floatval($request->POWERCOSTAMOUNT)
+            ]);
+        return $this->G->success();
+    }
 
     public function loadBillbyid($id)
     {
         $list = db::select("SELECT * FROM  " . $this->meter . ".`tbl_water_bill_new` WHERE `sched_id` = '" . $id . "'");
+        return response()->json(new JsonResponse($list));
+    }
+    public function loadBillbyidElec($id)
+    {
+        $list = db::select("SELECT * FROM  " . $this->meter . ".`tbl_electric_bill_new1` WHERE `sched_id` = '" . $id . "'");
         return response()->json(new JsonResponse($list));
     }
 }

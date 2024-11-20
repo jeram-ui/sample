@@ -33,6 +33,10 @@ Route::namespace('Api')->group(function () {
     // delete a subscription for a user
     Route::post('subscription/delete', 'SubscriptionController@destroy');
 
+    Route::post('billSchedElec', 'Admin\MeterController@billSchedElec');
+    Route::post('updatebillSchedElec', 'Admin\MeterController@updatebillSchedElec');
+    Route::post('updatebillingElec', 'Admin\MeterController@updatebillingElec');
+    Route::post('loadBillElec', 'Admin\MeterController@loadBillElec');
 
     Route::group(['middleware' => 'auth:api'], function () {
         Route::post('ChangePassword', 'AuthController@ChangePassword');

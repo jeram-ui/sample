@@ -189,21 +189,21 @@ class hrcontroller extends Controller
       $data = $request->data;
       $date = $request->par;
       // PDF::AddPage('P');
-      PDF::AddPage('L', array(215.9, 330.2));
+      PDF::AddPage('L', 'mm', array(215.9, 330.2), true, 'UTF-8', false);
       PDF::SetTitle('DTR');
       // PDF::SetHeaderMargin(1);
-      PDF::SetTopMargin(1);
-      // PDF::SetMargins(1, 1, 1, 1);
+      // PDF::SetTopMargin(.5);
+      PDF::SetMargins(0, 0, 0, 0);
       PDF::SetFont('Helvetica', '', 7);
       // -- set new background ---
       $bMargin = PDF::getBreakMargin();
       $auto_page_break = PDF::getAutoPageBreak();
-      PDF::SetAutoPageBreak(false, 0);
-      PDF::SetAutoPageBreak($auto_page_break, $bMargin);
+      PDF::SetAutoPageBreak(true, 0);
+      // PDF::SetAutoPageBreak($auto_page_break, $bMargin);
 
       PDF::setPageMark();
       PDF::setImageScale(PDF_IMAGE_SCALE_RATIO);
-      $Template = '<table width="100%" cellpadding="2">
+      $Template = '<table width="100%" cellpadding="1">
              <tr>
                 <th width="32%">' . $this->printingDtr($data, $date) . '</th>
                 <th width="2%"></th>
@@ -270,7 +270,7 @@ class hrcontroller extends Controller
     }
     $html = '
     <div>&nbsp;&nbsp;CIVIL SERVICE FORM No. 48</div>
-    <table  style="border:1px solid black" cellpadding="3" width="100%" >
+    <table  style="border:1px solid black" cellpadding="1" width="100%" >
         <tr>
             <td width="100%" align="center"><b>DAILY TIME RECORD</b></td>
         </tr>
@@ -305,7 +305,7 @@ class hrcontroller extends Controller
         </tr>
     </table>
 
-    <table border=".3" cellpadding="1.5" width="100%">
+    <table border=".3" cellpadding="1" width="100%">
 
             <tr style="text-align:center;">
                 <th rowspan="2" width = "12%">Day</th>
@@ -515,7 +515,7 @@ class hrcontroller extends Controller
     }
     $html .= '<tr>
               <td  width = "100%">
-                  <table style="font-size:7px;" width = "100%">
+                  <table style="font-size:8px;" width = "100%">
 
                   <tr>
                         <td width="5%"></td>
@@ -552,22 +552,19 @@ class hrcontroller extends Controller
                   </tr>
 
                   <tr>
-                        <td width="50%" align="center"><b>Employee</b></td>
+                        <td width="100%" align="center"><b>Employee</b></td>
                   </tr>
                   <tr>
-                        <td width="5%"></td>
-                        <td width="95%">Verified as to the prescribed office hours</td>
+                        <td width="100%" align="center">Verified as to the prescribed office hours</td>
                   </tr>
                   <tr>
                         <td width="100%"></td>
                   </tr>
                   <tr>
-                        <td width="5%"></td>
-                        <td width="50%" style="border-bottom:1px solid black"></td>
+                        <td width="100%" style="border-bottom:1px solid black"></td>
                   </tr>
                   <tr>
-                        <td width="30%" align="right"><b>In Charge</b></td>
-                        <td width="70%"></td>
+                        <td width="100%" align="center"><b>In Charge</b></td>
                   </tr>
 
               </table>
