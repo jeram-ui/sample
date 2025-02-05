@@ -50,7 +50,7 @@ class resolutionController extends Controller
 
         return  $this->G->success();
     }
-    
+
     public function storePR(Request $request)
     {
         $form = $request->form;
@@ -944,14 +944,14 @@ class resolutionController extends Controller
                 if ($department !== $value->department) {
                     $tableData .= '<tr>
                     <td rowspan="'. $value->countx.'" width="15%" style="font-size:9pt;" align="center"><b><br />' . $value->department . '<br /></b></td>
-                    <td width="55%" align="left" style="font-size:8pt;"><br />' . $value->item_name . '</td>
+                    <td width="55%" align="left" style="font-size:8pt;"><br />' . $value->title . '</td>
                     <td width="15%" align="center" style="font-size:8pt;">' . $value->PR . '</td>
                     <td width="15%" align="right" style="font-size:8pt;">' . number_format($value->total_cost, 2) . '</td>
                     </tr>';
                 } else {
 
                 $tableData .= ' <tr>
-                <td width="55%" align="left"><br />' . $value->item_name . '</td>
+                <td width="55%" align="left"><br />' . $value->title . '</td>
                 <td width="15%" align="center">' . $value->PR . '</td>
                 <td width="15%" align="right">' . number_format($value->total_cost, 2) . '</td>
                 </tr>';
@@ -965,7 +965,7 @@ class resolutionController extends Controller
             foreach ($data as $key => $valuez) {
 
                 $tableData1 .= ' <tr>
-                <td><br />' . $valuez->item_name . '</td>
+                <td><br />' . $valuez->title . '</td>
                 <td align="center">' . $valuez->PR . '</td>
                 <td align="right">' . number_format($valuez->total_cost, 2) . '</td>
             </tr>
@@ -1354,12 +1354,11 @@ class resolutionController extends Controller
                                         </tr>
                                         <tr>
                                             <td width="100%" align="center" style="font-size:9pt;">
-                                            <b>KRISTINE VANESSA T. CHIONG</b>
+                                            <b>VALDEMAR M. CHIONG</b>
                                             </td>
                                         </tr>
                                         <tr>
-                                            <td width="9%"></td>
-                                            <td width="91%" align="center" style="font-size:9pt;" >
+                                            <td width="100%" align="center" style="font-size:9pt;" >
                                            City Mayor
                                             </td>
                                         </tr>

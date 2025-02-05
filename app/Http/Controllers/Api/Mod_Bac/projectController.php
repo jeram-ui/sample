@@ -14,6 +14,7 @@ use Storage;
 use File;
 use Exception;
 use ZipArchive;
+use NumberFormatter;
 
 class projectController extends Controller
 {
@@ -25,6 +26,11 @@ class projectController extends Controller
     private $general;
     private $Proc;
     private $budget;
+    private $dbEngr;
+    private $Bac;
+    private $sched_db;
+
+
     public function __construct(GlobalController $global)
     {
         $this->G = $global;
@@ -35,6 +41,8 @@ class projectController extends Controller
         $this->Proc = $this->G->getProcDb();
         $this->Bac = $this->G->getBACDb();
         $this->sched_db = $this->G->getSchedulerDb();
+        $this->dbEngr = $this->G->getEngDb();
+
         $this->budget = $this->G->getBudgetDb();
     }
     public function displayCalendarPerdate(Request $request)
@@ -439,12 +447,13 @@ class projectController extends Controller
             ->leftJoinSub($pow, 'pow', function ($join) {
                 $join->on('pow_main_individual.id', '=', 'pow.pow_id');
             })
-            ->leftJoin($this->lgu_db . '.setup_project_registration_main', 'setup_project_registration_main.id', 'pow_main_individual.project_id')
+            ->leftJoin($this->dbEngr . '.setup_project_registration_main', 'setup_project_registration_main.id', 'pow_main_individual.project_id')
             // ->leftJoin($this->Proc . '.pow_sof_detail', 'pow_sof_detail.pow_id', '=', 'pow_main_individual.id')
             ->select('pow.*', 'pow_main_individual.*', 'pow_main_individual.id as pow_id', 'setup_project_registration_main.project_classification as Project Type', 'setup_project_registration_main.location', db::raw($this->Proc . '.rans_get_fund_by_pow(pow_main_individual.id) as SOF_Description'), db::raw('concat(pow_main_individual.project_duration," CD") as project_duration'), 'pow_main_individual.bidamount as bidamount')
             ->where('pow_main_individual.status', '=', 'Approved')
 
             ->whereIn('pow_main_individual.frm', ['POW', 'PROPOSAL'])
+            ->where('pow_main_individual.bidamount', '>', 800000.00)
             ->whereNotIn('pow_main_individual.id', $array)
             ->groupBy('pow_main_individual.id')
             ->get();
@@ -681,8 +690,14 @@ class projectController extends Controller
 
         // $filter = $request->filter;
         $list = db::table($this->Bac . '.bacc_proj')
+            ->leftJoin($this->lgu_db . '.ebplo_business_list', 'bacc_proj.winning_bidder', 'ebplo_business_list.business_number')
+            ->leftjoin($this->Bac . '.bacc_2invitationtobid', 'bacc_2invitationtobid.bacc_proj_id', 'bacc_proj.id')
+            ->leftjoin($this->Bac . '.bacc_contract', 'bacc_contract.proj_id', 'bacc_proj.id')
+            ->leftjoin($this->Proc . '.pow_main_individual', 'pow_main_individual.id', 'bacc_proj.pow_id')
+            ->leftjoin($this->Proc . '.tbl_pr_main', 'tbl_pr_main.pow_id', 'pow_main_individual.id')
             ->where('stat', 0)
-            ->whereRaw(' (`doc_ref` like ? or `ABC` like ? or `title_of_project` like ? or `SOF` like ? or `remarks` like ? or `winning_bidder` like ? or `itb_no` like ?)', ['%' . $request->filterval . '%', '%' . $request->filterval . '%','%' . $request->filterval . '%','%' . $request->filterval . '%','%' . $request->filterval . '%','%' . $request->filterval . '%','%' . $request->filterval . '%']);
+            ->where('transaction_entry_type', 'bidding')
+            ->whereRaw(' (`doc_ref` like ? or `ABC` like ? or `title_of_project` like ? or bacc_proj.`SOF` like ? or bacc_proj.`remarks` like ? or `winning_bidder` like ? or bacc_proj.itb_no like ?)', ['%' . $request->filterval . '%', '%' . $request->filterval . '%', '%' . $request->filterval . '%', '%' . $request->filterval . '%', '%' . $request->filterval . '%', '%' . $request->filterval . '%', '%' . $request->filterval . '%']);
         // if ($filter === 'This Day') {
         //     $list->where('pre_proc', '=', date("Y-m-d"))
         //         ->orWhere('posting', date("Y-m-d"))
@@ -715,11 +730,19 @@ class projectController extends Controller
         $result = $list
             ->select(
                 '*',
+                'bacc_proj.*',
+                'bacc_contract.sp_resolution_no',
+                'pow_main_individual.project_loc',
+                'pow_main_individual.project_loc_CityProvince',
+                'tbl_pr_main.pr_no',
+                'ebplo_business_list.reference_address',
                 db::raw("(CASE WHEN proc_type = 'Infrastructure' AND ABC > 5000000 THEN TRUE WHEN proc_type = 'Goods' AND ABC > 2000000 THEN TRUE WHEN proc_type = 'Consultancy' AND ABC > 1000000 THEN TRUE ELSE FALSE END) AS showss
             "),
-                db::raw("ifnull(" . $this->Bac . ".get_project_status_bac(pow_id),'On-going') as statusx")
+                db::raw("ifnull(" . $this->Bac . ".get_project_status_bac(bacc_proj.pow_id),'On-going') as statusx")
             )
-            ->orderBy(db::Raw('ifnull(itb_no,"")'), "asc")
+            ->orderBy(db::Raw('ifnull(bacc_proj.itb_no,"")'), "asc")
+            // ->orderBy(db::Raw("ifnull(" . $this->Bac . ".bacc_proj.itb_no,"")"), "asc")
+            // ->orderBy(db::raw("ifnull(" . $this->Bac . ".(bacc_proj.pow_id,"")"))
             ->get();
 
         return response()->json(new JsonResponse($result));
@@ -774,7 +797,7 @@ class projectController extends Controller
                 'trk.trkId',
                 db::raw("ifnull(" . $this->Bac . ".get_project_status_bac(bacc_proj.pow_id),'On-going') as statusx")
             )
-            ->whereRaw(" (`doc_ref` like ? or `title_of_project` like ? or `SOF` like ?  or `bid_bulletin` like ? or `remarks` like ? or `itb_no` like ?)", ['%'.$request->filterval.'%','%'.$request->filterval.'%','%'.$request->filterval.'%','%'.$request->filterval.'%','%'.$request->filterval.'%','%'.$request->filterval.'%'])
+            ->whereRaw(" (`doc_ref` like ? or `title_of_project` like ? or `SOF` like ?  or `bid_bulletin` like ? or `remarks` like ? or `itb_no` like ?)", ['%' . $request->filterval . '%', '%' . $request->filterval . '%', '%' . $request->filterval . '%', '%' . $request->filterval . '%', '%' . $request->filterval . '%', '%' . $request->filterval . '%'])
             ->orderBy("bacc_proj.id", "desc")
             ->get();
 
@@ -1168,7 +1191,7 @@ class projectController extends Controller
     {
         $list = db::table($this->Bac . '.bacc_ntp')
             ->join($this->Bac . '.bacc_proj', 'bacc_proj.id', '=', 'bacc_ntp.proj_id')
-            ->whereRaw("(bacc_ntp.contract_duration like ? or bacc_ntp.ntp_issuance like ? or bacc_ntp.effectivity like ? or bacc_ntp.expected_completion like ? or bacc_ntp.remarks like ? or bacc_proj.title_of_project like ? or bacc_proj.proc_type like ?)",['%' . $request->type . '%', '%' . $request->type . '%', '%' . $request->type . '%', '%' . $request->type . '%', '%' . $request->type . '%', '%' . $request->type . '%', '%' . $request->type . '%'])
+            ->whereRaw("(bacc_ntp.contract_duration like ? or bacc_ntp.ntp_issuance like ? or bacc_ntp.effectivity like ? or bacc_ntp.expected_completion like ? or bacc_ntp.remarks like ? or bacc_proj.title_of_project like ? or bacc_proj.proc_type like ?)", ['%' . $request->type . '%', '%' . $request->type . '%', '%' . $request->type . '%', '%' . $request->type . '%', '%' . $request->type . '%', '%' . $request->type . '%', '%' . $request->type . '%'])
             ->get();
         return response()->json(new JsonResponse($list));
     }
@@ -1187,7 +1210,6 @@ class projectController extends Controller
         try {
             $main = $request->form;
             $idx = $main['id'];
-
             DB::beginTransaction();
             if ($idx == 0) {
                 $main['steps'] = 2;
@@ -1256,12 +1278,13 @@ class projectController extends Controller
                 ->select('cto_general_billing.ref_id', 'or_number', 'or_date')
                 ->where('cto_general_billing.bill_description', 'like', 'bid')
                 ->where('cto_general_billing.status', '<>', 'CANCELLED');
+
             $list['observer'] = db::table($this->Bac . '.bacc_invitation_opening_bid')
                 ->join($this->Bac . '.bacc_proj', 'bacc_proj.id', '=', 'bacc_invitation_opening_bid.proj_id')
                 ->leftJoinSub($bill, 'bill', function ($join) {
                     $join->on('bacc_invitation_opening_bid.id', '=', 'bill.ref_id');
                 })
-                ->select('bacc_invitation_opening_bid.proj_id', 'bill.or_number', 'bill.or_date', 'bacc_invitation_opening_bid.doc_amount as bid_fees', 'bacc_proj.ABC as abc_amount', 'organization', 'business_id as id', 'business_name as name', db::raw('"" as or_no') , db::raw('"" as or_date') , db::raw('"" as security_type') , db::raw('"" as security_remarks'),db::raw('0 as bidsecurity'), db::raw('0 as bidamount'), db::raw('"" as rating'), db::raw('"" as remarks'), 'winner')
+                ->select('bacc_invitation_opening_bid.proj_id', 'bill.or_number as or_no', 'bill.or_date', 'bacc_invitation_opening_bid.doc_amount as bid_fees', 'bacc_proj.ABC as abc_amount', 'organization', 'business_id as id', 'business_name as name', db::raw('0 as bidsecurity'), db::raw('0 as bidamount'), db::raw('"" as security_type'), db::raw('"" as rating'), db::raw('"" as remarks'), 'winner')
                 ->where('bacc_invitation_opening_bid.proj_id', $proj_id)
                 ->where('entry_type', 'SUPPLIER')
                 ->get();
@@ -1289,7 +1312,7 @@ class projectController extends Controller
     public function store6bid_opening(Request $request)
     {
         try {
-            DB::beginTransaction();
+            // DB::beginTransaction();
             $observer =  $request->observer;
             $form = $request->form;
             $bac =  $request->bac;
@@ -1305,20 +1328,34 @@ class projectController extends Controller
             if ($chk == 0) {
                 db::table($this->Bac . '.bacc_bid_opening')->where('proj_id', $form['id'])->delete();
                 foreach ($observer as $key => $value) {
+
+                    // log::debug($form['id']);
+                    // log::debug($value['id']);
+                    // log::debug($value['name']);
+                    // log::debug($value['security_type']);
+                    // log::debug($value['bidsecurity']);
+                    // log::debug($value['bid_fees']);
+                    // log::debug($value['bidamount']);
+                    // log::debug($value['rating']);
+                    // log::debug($value['remarks']);
+                    // log::debug($value['security_remarks']);
+                    // log::debug($value['or_date']);
+                    // log::debug($value['or_no']);
                     $data = array(
                         'proj_id' => $form['id'],
                         'business_number' => $value['id'],
                         'business_name' => $value['name'],
                         'security_type' => $value['security_type'],
-                        'bidsecurity' => str_replace(',', '', $value['bidsecurity']),
-                        'bid_fees' => str_replace(',', '', $value['bid_fees']),
-                        'bidamount' => str_replace(',', '', $value['bidamount']),
+                        'bidsecurity' =>  $value['bidsecurity'],
+                        'bid_fees' =>  $value['bid_fees'],
+                        'bidamount' =>  $value['bidamount'],
                         'rating' => $value['rating'],
                         'remarks' => $value['remarks'],
                         'security_remarks' => $value['security_remarks'],
                         'or_date' => $value['or_date'],
                         'or_no' => $value['or_no'],
                     );
+                    log::debug($data);
                     db::table($this->Bac . '.bacc_bid_opening')->insert($data);
                 }
             } else {
@@ -1332,9 +1369,9 @@ class projectController extends Controller
                             'business_number' => $value['id'],
                             'business_name' => $value['name'],
                             'security_type' => $value['security_type'],
-                            'bidsecurity' => str_replace(',', '', $value['bidsecurity']),
-                            'bid_fees' => str_replace(',', '', $value['bid_fees']),
-                            'bidamount' => str_replace(',', '', $value['bidamount']),
+                            'bidsecurity' =>  $value['bidsecurity'],
+                            'bid_fees' =>  $value['bid_fees'],
+                            'bidamount' =>  $value['bidamount'],
                             'rating' => $value['rating'],
                             'remarks' => $value['remarks'],
                             'security_remarks' => $value['security_remarks'],
@@ -1348,9 +1385,9 @@ class projectController extends Controller
                             'business_number' => $value['id'],
                             'business_name' => $value['name'],
                             'security_type' => $value['security_type'],
-                            'bidsecurity' => str_replace(',', '', $value['bidsecurity']),
-                            'bid_fees' => str_replace(',', '', $value['bid_fees']),
-                            'bidamount' => str_replace(',', '', $value['bidamount']),
+                            'bidsecurity' =>  $value['bidsecurity'],
+                            'bid_fees' =>  $value['bid_fees'],
+                            'bidamount' =>  $value['bidamount'],
                             'rating' => $value['rating'],
                             'remarks' => $value['remarks'],
                             'security_remarks' => $value['security_remarks'],
@@ -1364,7 +1401,7 @@ class projectController extends Controller
                     }
                 }
             }
-            DB::commit();
+            // DB::commit();
             return response()->json(new JsonResponse(['Message' => 'Transaction Successfully Save.', 'status' => 'success']));
         } catch (\Exception $th) {
             DB::rollback();
@@ -1649,18 +1686,672 @@ class projectController extends Controller
             ->where('bac_proj_id', $form['id'])
             ->delete();
 
-            $datx = array(
-                'bac_proj_id' => $form['id'],
-                'declaration' => $forPrint['declaration'],
+        $datx = array(
+            'bac_proj_id' => $form['id'],
+            'declaration' => $forPrint['declaration'],
 
-            );
-            // db::table("marriagecert_wifeinfo")->insert($datx);
+        );
+        // db::table("marriagecert_wifeinfo")->insert($datx);
 
         DB::table($this->Bac . '.bacc_proj_bid_declaration')->insert($datx);
         $id = DB::getPdo()->LastInsertId();
 
         return  $this->G->success();
     }
+
+    public function printITB(Request $request)
+    {
+        try {
+
+            $data = $request->data;
+            $b = $data['amountWordABC'];
+            $mainData = "";
+            $prDescription = DB::table($this->Bac . '.bacc_proj')
+                ->leftjoin($this->Proc . '.pow_main_individual', 'pow_main_individual.id', 'bacc_proj.pow_id')
+                ->leftjoin($this->Proc . '.tbl_pr_main', 'tbl_pr_main.pow_id', 'pow_main_individual.id')
+                ->leftjoin($this->Proc . '.tbl_pr_detail', 'tbl_pr_detail.main_id', 'tbl_pr_main.id')
+                ->where('bacc_proj.pow_id', $data['pow_id'])
+                ->get();
+            $mainData = "";
+            foreach ($prDescription as $key => $value) {
+                $mainData .= '  <tr>
+                <td style="font-size:9pt">' . $value->item_name . '</td>
+                <td style="font-size:9pt" align="center">' . $value->qty . '</td>
+                <td style="font-size:9pt" align="center">' . $value->unit_measure . '</td>
+            </tr>';
+            }
+
+            $activitieszx = db::table($this->Bac . '.bacc_proj')
+                ->leftJoin($this->Bac . '.bacc_proj_bid_declaration', 'bacc_proj_bid_declaration.bac_proj_id', 'bacc_proj.id')
+                // ->where('bacc_proj.id', $main['id'])
+                ->get();
+            $acitivity = "";
+
+            foreach ($activitieszx as $key => $value) {
+                $acitivity = $value;
+            }
+
+
+
+            $Template = '  <table width="100%">
+
+            <tr>
+                <td width="23%">
+                    <table width="100%">
+                        <tr>
+                            <td style="font-size:6pt;" ><i>Standard Form Number: SF-CONS-04</i></td>
+                        </tr>
+                        <tr>
+                            <td style="font-size:6pt;" ><i>Revised on: July, 2004</i></td>
+                        </tr>
+                        <tr>
+                            <td style="font-size:6pt;"><i>Municipality of Dumanjug, Cebu</i></td>
+                        </tr>
+                    </table>
+
+                </td>
+                <td width="54%">
+                    <table width="100%">
+                    <tr>
+                    <td align="center">
+                        <img src="' . public_path() . '/img/logo1.png"  height="60" width="60">
+                    </td>
+
+                </tr>
+                        <tr>
+                             <td align="center" style="font-size:10pt;letter-spacing:3px" >
+                            <b>INVITATION TO BID</b>
+                                </td>
+                        </tr>
+                        <tr>
+                            <td align="center" style="font-size:10pt;" >
+                           CITY OF TALISAY
+                            </td>
+                        </tr>
+                        <tr>
+                            <td align="center" style="font-size:10pt;" >
+                          <b>' . (!empty($data['bid_opening']) ? (date_format(date_create($data['bid_opening']), "Y")) : "") . '</b>
+                           <br />
+                            </td>
+                        </tr>
+
+
+                    </table>
+                </td>
+                <td width="23%">
+                    <table width="100%">
+                    <tr>
+                        <td width="45%" style="font-size:6pt;" ><i>Reference Number</i></td>
+                        <td width="55%" style="font-size:6pt;border-bottom:1px solid black" >' . $data['ref_no'] . '</td>
+                    </tr>
+                    <tr>
+                        <td width="100%" style="font-size:6pt;"><i>Procurement of GOODS</i></td>
+                    </tr>
+                    </table>
+                </td>
+                </tr>
+            </table>
+            ';
+
+
+
+            $Template .= '<table width="100%">
+
+                        <tr>
+                            <td width="100%"></td>
+                        </tr>
+
+                        <tr>
+                            <td width="100%">The Municipality of Dumanjug, through its Bids and Awards Committee (BAC), invits suppliers/contractors to apply
+                            for eligiblity and to bid for the project titled below. Bids received in excess of the ABC shall be automatically rejectd at bid opening. </td>
+                        </tr>
+
+
+                        <tr>
+                            <td width="100%"></td>
+                        </tr>
+                        <tr>
+                            <td width="7%"></td>
+                            <td width="15%">Name of Project:</td>
+                            <td width="78%" style="font-size:10pt;" >' . $data['title_of_project'] . '</td>
+                        </tr>
+                        <tr>
+                            <td width="100%"></td>
+                        </tr>
+                        <tr>
+                            <td width="10%">
+                                <table width="100%">
+                                    <tr>
+                                        <td style="font-size:6pt;" ></td>
+                                    </tr>
+
+                                </table>
+
+                             </td>
+
+                            <td width="80%">
+                                <table width="100%" border="1" cellpadding="2">
+                                    <tr>
+                                        <td width="70%" style="font-size:9pt" align="center"><b>ITEM DESCRIPTION</b></td>
+                                        <td width="15%" style="font-size:9pt" align="center"><b>QTY</b></td>
+                                        <td width="15%" style="font-size:9pt" align="center"><b>UNIT</b></td>
+                                    </tr>
+                                    ' . $mainData . '
+
+                                </table>
+                            </td>
+                            <td width="10%">
+                                <table width="100%">
+                                    <tr>
+                                        <td style="font-size:6pt;"></td>
+                                    </tr>
+                             </table>
+
+                             </td>
+                        </tr>
+
+                        <tr>
+                            <td width="100%"></td>
+                        </tr>
+
+                        <tr>
+                            <td width="7%"></td>
+                            <td width="6%">ABC: </td>
+                            <td width="87%" style="font-size:9pt;" >' . strtoupper($b) . ' (' . number_format($data['ABC'], 2) . '):</td>
+
+                        </tr>
+                        <tr>
+                            <td width="7%"></td>
+                            <td width="20%">Purchase Request No.     : </td>
+                            <td width="20%" style="font-size:9pt;" >' . $data['pr_no'] . '</td>
+                            <td width="20%">Contract Duration     : </td>
+                            <td width="20%" style="font-size:9pt;" >' . $data['contract_duration'] . '</td>
+                        </tr>
+                        <tr>
+                            <td width="7%"></td>
+                            <td width="20%">Source of Fund     : </td>
+                            <td width="20%" style="font-size:9pt;" >' . $data['SOF'] . '</td>
+                            <td width="20%">Bid Document Payment     : </td>
+                            <td width="20%" style="font-size:9pt;" >' . $data['bid_fees'] . '</td>
+                        </tr>
+                        <tr>
+                            <td width="100%"></td>
+                        </tr>
+                        <tr>
+                            <td width="100%">The list of minimum requirements is indicated in the Eligibility Form. Eligiblity of prospective bidder shall be checked
+                            using non-discretionary "pass/fail" criteria. Bids whose technical proposals pass the minimum technical rating of 100% shall have its financial
+                            proposals opened and evaluated. The technical proposals shall carry 100% weight in the bid evaluation.</td>
+                        </tr>
+                        <tr>
+                            <td width="100%"></td>
+                        </tr>
+                        <tr>
+                            <td width="100%">All particulars relative to Eligibility Statement and Screening, Bid Security, Performance Security, Pre-Bidding Conference(s),
+                            Evaluation of Bids, Post-Qualification and Award of Contract shall be governed by the pertinent provisions or R.A. 9184 and its Revised Implementing
+                            Rules and Regulation (IRR)</td>
+                        </tr>
+                        <tr>
+                            <td width="100%"></td>
+                        </tr>
+                        <tr>
+                            <td width="100%">The complete schedule of activities is listed as follows:</td>
+                        </tr>
+                        <tr>
+                            <td width="100%"></td>
+                        </tr>
+                        <tr>
+                            <td width="7%"></td>
+                            <td width="43%"><b>1. Posting and Issuance of Bid Documents</b></td>
+                            <td width="50%" align="right"> <b>' . (!empty($data['posting']) ? (date_format(date_create($data['posting']), "F d, Y")) : "") . '</b></td>
+                        </tr>
+                        <tr>
+                            <td width="7%"></td>
+                            <td width="43%"><b>2. Pre-Bid BAC Conference Room</b></td>
+                            <td width="50%" align="right"><b>' . (!empty($data['prebidd_conference']) ? (date_format(date_create($data['prebidd_conference']), "F d,Y")) : "") . ' @ 10:00 a.m</b></td>
+                        </tr>
+                        <tr>
+                            <td width="7%"></td>
+                            <td width="43%"><b>3. Dropping and Opening of Bids and BAC Room</b></td>
+                            <td width="50%" align="right"><b> ' . (!empty($data['bid_opening']) ? (date_format(date_create($data['bid_opening']), "F d,Y")) : "") . ' @ 10:00 a.m</b></td>
+                        </tr>
+                        <tr>
+                            <td width="100%"></td>
+                        </tr>
+                        <tr>
+                            <td width="100%">Bids Documents will be available upon payment of a non-refundable amount to the City Trasurer\'s Office,
+                            City Hall Building, Municipality of Dumanjug, Cebu.</td>
+                        </tr>
+                        <tr>
+                            <td width="100%"></td>
+                        </tr>
+                        <tr>
+                            <td width="100%">The bid security shall be in an amount equal to a percentage of the ABC in accordance with the following schedule:
+                            Form of Bid Security Amount of Bid Security (Equal to Percentage of the ABC) a) Cash, cashie\'s/manager\'s check, bank draft/guarantee confirmed
+                            by a Universal or Commercial Bank b) Irrevocable letter of credit issued by a Universal or Commercial Bank, if issued by a foreign bank c) Surety
+                            bond callable upon demand issued by a surety or insurance company duly certified by the Insurance Commision as authorized to issue such security: Five
+                            percent (5%); d) Any combination of the foregoing. Proportionate to share of form with respect to total amount of security.</td>
+                        </tr>
+                        <tr>
+                            <td width="100%"></td>
+                        </tr>
+                        <tr>
+                            <td width="100%">The Bids and Awards Committee of the Municipality of Dumanjug reserves the right to reject documents which do not comply
+                            with the requirements, waive any formalities of documents or consider any submission of documents as substantial compliance, reject any
+                            and all bids, declare failure of bidding, annul the bidding process, or not award the contract, The Municipality of Dumanjug assumes no responsibility whatsoever to
+                            compensate to indemnify bidders for any expenses incurred in the preparation of the bid.
+                            </td>
+                        </tr>
+                        <tr>
+                            <td width="100%"></td>
+                        </tr>
+                        <tr>
+                            <td width="7%"></td>
+                            <td width="25%"><i>Posting Schedule:</i></td>
+                            <td width="18%"></td>
+                            <td width="50%" align="center">Approved by:</td>
+                        </tr>
+                        <tr>
+                            <td width="7%"></td>
+                            <td width="25%">Bulletin Board</td>
+                            <td width="63%">' . (!empty($data['posting']) ? (date_format(date_create($data['posting']), "F d - ")) : "") . (!empty($data['bid_opening']) ? (date_format(date_create($data['bid_opening']), "F d, Y")) : "") . '</td>
+                        </tr>
+                        <tr>
+                            <td width="50%"></td>
+                            <td width="20%"></td>
+                            <td width="30%" style="border-bottom:1px solid black" align="left"><b>EDGAR M. MABUNAY</b></td>
+                        </tr>
+                        <tr>
+                            <td width="50%"></td>
+                            <td width="20%"></td>
+                            <td width="30%" style="border-bottom:1px solid black" align="left">City Budget Officer/BAC Chairman</td>
+                        </tr>
+
+
+            </table>';
+
+
+
+
+
+
+
+
+
+
+            PDF::SetTitle('Invitation to Bid');
+            PDF::SetFont('helvetica', '', 9);
+            PDF::AddPage('P', array(215.9, 279.4));
+            PDF::writeHTML($Template, true, 0, true, 0);
+            PDF::Output(public_path() . '/prints.pdf', 'F');
+            $full_path = public_path() . '/prints.pdf';
+            if (\File::exists(public_path() . '/prints.pdf')) {
+                $file = \File::get($full_path);
+                $type = \File::mimeType($full_path);
+                $response = \Response::make($file, 200);
+                $response->header("Content-Type", $type);
+                return $response;
+            }
+        } catch (\Exception $e) {
+            return response()->json(new JsonResponse(['errormsg' => $e, 'status' => 'error']));
+        }
+    }
+
+    public function printNTP(Request $request)
+    {
+        try {
+
+            $data = $request->data;
+
+            $mainData = "";
+            $prDescription = DB::table($this->Bac . '.bacc_proj')
+                ->leftjoin($this->Bac . '.bacc_2invitationtobid', 'bacc_2invitationtobid.bacc_proj_id', 'bacc_proj.id')
+                ->leftjoin($this->Proc . '.pow_main_individual', 'pow_main_individual.id', 'bacc_proj.pow_id')
+                ->leftjoin($this->Proc . '.tbl_pr_main', 'tbl_pr_main.pow_id', 'pow_main_individual.id')
+                ->where($this->Proc . '.tbl_pr_main.pr_no', Auth::user()->Employee_id)
+                // ->where('stat', 0)
+                ->get();
+
+            $Template = '  <table width="100%">
+
+            <tr>
+                <td width="25%" align="right">
+                <img src="' . public_path() . '/img/logo1.png"  height="90" width="90">
+                </td>
+                <td width="65%">
+                    <table width="100%">
+                    <tr>
+                    <td align="center">
+
+                    </td>
+
+                </tr>
+                        <tr>
+                             <td align="center" style="font-size:10pt;" >
+                             Republic of the Philippines
+                                </td>
+                        </tr>
+                        <tr>
+                            <td align="center" style="font-size:10pt;" >
+                            Province of Cebu
+                            </td>
+                        </tr>
+                        <tr>
+                            <td align="center" style="font-size:10pt;" >
+                            Municipality of Dumanjug
+                           <br />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td align="center" style="font-size:11pt;color:blue">
+                            <b>OFFICE OF THE BIDS AND AWARDS COMMITTEE</b>
+                            </td>
+                        </tr>
+
+                    </table>
+                </td>
+                <td width="10%">
+                </td>
+                </tr>
+            </table>
+            ';
+
+            $Template .= '<table width="100%" cellpadding="2">
+
+                <tr>
+                    <td width="100%" style="border-bottom:2px solid black"></td>
+                </tr>
+                <tr>
+                    <td width="100%"></td>
+                </tr>
+                <tr>
+                    <td width="20%" style="border-bottom:1px solid black"></td>
+                </tr>
+                <tr>
+                    <td width="20%" align="center">Date</td>
+                </tr>
+                <tr>
+                    <td width="100%"></td>
+                </tr>
+                <tr>
+                    <td width="10%"></td>
+                    <td width="90%"> The Contract therefore having been approved, copy of which will be furnished, NOTICE is hereby given:</td>
+                </tr>
+                <tr>
+                    <td width="100%"></td>
+                </tr>
+
+
+
+                <tr>
+                    <td width="100%" style="font-size:15pt" align="center"><b><u>NOTICE TO PROCEED</u></b></td>
+                </tr>
+                <tr>
+                    <td width="100%"></td>
+                </tr>
+                <tr>
+                    <td width="25%" style="font-size:9pt">Name of Contractor :</td>
+                    <td width="65%" style="font-size:10pt;border-bottom:1px solid black"><b>' . $data['winning_bidder'] . '</b></td>
+                </tr>
+                <tr>
+                    <td width="25%" style="font-size:9pt">Address :</td>
+                    <td width="65%" style="font-size:10pt;border-bottom:1px solid black">' . $data['project_loc'] . '</td>
+                </tr>
+                <tr>
+                    <td width="25%" style="font-size:9pt">Project Description :</td>
+                    <td width="65%" style="font-size:10pt;border-bottom:1px solid black"><b>' . $data['title_of_project'] . '</b></td>
+                </tr>
+                <tr>
+                    <td width="25%" style="font-size:9pt">Contact Duration :</td>
+                    <td width="65%" style="font-size:10pt;border-bottom:1px solid black"><b>' . $data['contract_duration'] . '</b></td>
+                </tr>
+                <tr>
+                    <td width="25%" style="font-size:9pt">Purchase Request No. :</td>
+                    <td width="65%" style="font-size:10pt;border-bottom:1px solid black"><b>' . $data['pr_no'] . '</b></td>
+                </tr>
+                <tr>
+                    <td width="25%" style="font-size:9pt">BAC No. :</td>
+                    <td width="65%" style="font-size:10pt;border-bottom:1px solid black"><b>' . $data['sp_resolution_no'] . '</b></td>
+                </tr>
+                <tr>
+                    <td width="25%" style="font-size:9pt">Location of Project :</td>
+                    <td width="65%" style="font-size:10pt;border-bottom:1px solid black"><b>at ' . $data['project_loc'] . '</b></td>
+                </tr>
+                <tr>
+                    <td width="100%"></td>
+                </tr>
+                <tr>
+                    <td width="10%"></td>
+                    <td width="42%" style="font-size:9pt"> That the work on this project may be commenced from</td>
+                    <td width="35%" style="font-size:9pt;border-bottom:1px solid black"></td>
+                    <td width="13%" style="font-size:9pt"> and the </td>
+                </tr>
+                <tr>
+                    <td width="100%" style="font-size:9pt"> CONTRACT TIME or the number of days allowable under this Contract will be counted Ten (10) days after the date of this notice.</td>
+                </tr>
+                <tr>
+                    <td width="100%"></td>
+                </tr>
+                <tr>
+                    <td width="43%"></td>
+                    <td width="57%" style="font-size:9pt">Approved by:</td>
+                </tr>
+                <tr>
+                    <td width="100%"></td>
+                </tr>
+                <tr>
+                    <td width="100%"></td>
+                </tr>
+                <tr>
+                    <td width="55%"></td>
+                    <td width="57%" style="font-size:10pt"><b>Hon. EFREN GUNTRANO Z. GICA</b></td>
+                </tr>
+                <tr>
+                    <td width="55%"></td>
+                    <td width="30%" style="font-size:9pt" align="center">Municipality Mayor</td>
+                    <td width="15%"></td>
+                </tr>
+                <tr>
+                    <td width="55%"></td>
+                    <td width="30%" style="font-size:9pt" align="center">Municipality of Dumanjug</td>
+                    <td width="15%"></td>
+                </tr>
+                <tr>
+                    <td width="100%"></td>
+                </tr>
+                <tr>
+                    <td width="100%" style="font-size:9pt">Received by:</td>
+                </tr>
+                <tr>
+                    <td width="100%"></td>
+                </tr>
+                <tr>
+                    <td width="100%"></td>
+                </tr>
+                <tr>
+                    <td width="30%" style="font-size:9pt;border-bottom:1px solid black"></td>
+                </tr>
+                <tr>
+                    <td width="30%" style="font-size:9pt" align="center">Signature over Printed Name</td>
+                </tr>
+
+                <tr>
+                    <td width="100%"></td>
+                </tr>
+
+                <tr>
+                    <td width="30%" style="font-size:9pt;border-bottom:1px solid black"></td>
+                </tr>
+                <tr>
+                    <td width="30%" style="font-size:9pt" align="center">Date Received</td>
+                </tr>
+
+
+
+            </table>';
+
+
+
+
+
+
+
+
+            PDF::SetTitle('Notice To Proceed');
+            PDF::SetFont('helvetica', '', 9);
+            PDF::AddPage('P', array(215.9, 279.4));
+            PDF::writeHTML($Template, true, 0, true, 0);
+            PDF::Output(public_path() . '/prints.pdf', 'F');
+            $full_path = public_path() . '/prints.pdf';
+            if (\File::exists(public_path() . '/prints.pdf')) {
+                $file = \File::get($full_path);
+                $type = \File::mimeType($full_path);
+                $response = \Response::make($file, 200);
+                $response->header("Content-Type", $type);
+                return $response;
+            }
+        } catch (\Exception $e) {
+            return response()->json(new JsonResponse(['errormsg' => $e, 'status' => 'error']));
+        }
+    }
+
+
+
+
+
+    // public function printITB1(Request $request)
+    // {
+    //     try {
+
+    //         $data = $request->data;
+
+    //         // log::debug($data);
+    //         // $decl = $request->decl;
+    //         // $id = $main['id'];
+    //         // $projectx = db::table($this->Bac . '.bacc_proj')
+    //         //     ->leftJoin($this->Bac . '.bacc_proj_bid_declaration', 'bacc_proj_bid_declaration.bac_proj_id', 'bacc_proj.id')
+    //         //     ->where('bacc_proj.id', $main['id'])
+    //         //     ->get();
+    //         // $projectDatax = "";\
+
+    //         $prDescription= DB::table($this->Bac . '.bacc_proj')
+    //         ->leftjoin($this->Bac .'.bacc_2invitationtobid', 'bacc_2invitationtobid.bacc_proj_id','bacc_proj.id' )
+    //         ->leftjoin($this->Proc .'.pow_main_individual', 'pow_main_individual.id', 'bacc_proj.pow_id')
+    //         ->leftjoin($this->Proc .'.tbl_pr_main', 'tbl_pr_main.pow_id', 'pow_main_individual.id')
+    //         ->where($this->Proc .'.tbl_pr_main.pr_no')
+    //         // ->where('stat', 0)
+    //         ->get();
+    //         // $prDescription = DB::table($this->Proc .'.tbl_pr_main')
+    //         // ->lefjoin($this->Bac .'tbl_pr_detail','tbl_pr_detail.main_id','tbl_pr_main.id')
+    //         // ->where('.tbl_pr_main.pr_no',Auth::user()->Employee_id)
+    //         // ->get();
+    //         $mainData="";
+    //         foreach ($prDescription as $key => $value) {
+    //             $mainData.='  <tr>
+    //             <td style="font-size:9pt">'.$value->pr_description.'</td>
+    //             <td style="font-size:9pt" align="center">'.$value->qty.'</td>
+    //             <td style="font-size:9pt" align="center">'.$value->unit_measure.'</td>
+    //         </tr>';
+    //         }
+    //         if (count($prDescription)<3) {
+    //             for ($i=count($prDescription); $i < 3; $i++) {
+    //               $mainData.=' <tr>
+    //               <td style="font-size:9pt"></td>
+    //               <td style="font-size:9pt" align="center">1</td>
+    //               <td style="font-size:9pt" align="center">UNIT</td>
+    //           </tr> ';
+    //             }
+    //           }
+
+
+    //           log::debug($mainData);
+
+    //         $Template = '  <table width="100%">
+
+    //         <tr>
+    //             <td width="23%">
+    //                 <table width="100%">
+    //                     <tr>
+    //                         <td style="font-size:6pt;" ><i>Standard Form Number: SF-CONS-04</i></td>
+    //                     </tr>
+    //                     <tr>
+    //                         <td style="font-size:6pt;" ><i>Revised on: July, 2004</i></td>
+    //                     </tr>
+    //                     <tr>
+    //                         <td style="font-size:6pt;"><i>Talisay City, Cebu</i></td>
+    //                     </tr>
+    //                 </table>
+
+    //             </td>
+    //             <td width="54%">
+    //                 <table width="100%">
+    //                 <tr>
+    //                 <td align="center">
+    //                     <img src="' . public_path() . '/img/logonaga.png"  height="60" width="60">
+    //                 </td>
+
+    //             </tr>
+    //                     <tr>
+    //                          <td align="center" style="font-size:10pt;letter-spacing:3px" >
+    //                         <b>INVITATION TO BID</b>
+    //                             </td>
+    //                     </tr>
+    //                     <tr>
+    //                         <td align="center" style="font-size:10pt;" >
+    //                        CITY OF TALISAY
+    //                         </td>
+    //                     </tr>
+    //                     <tr>
+    //                         <td align="center" style="font-size:10pt;" >
+    //                       <b>2023</b>
+    //                        <br />
+    //                         </td>
+    //                     </tr>
+
+
+    //                 </table>
+    //             </td>
+    //             <td width="23%">
+    //                 <table width="100%">
+    //                 <tr>
+    //                     <td width="45%" style="font-size:6pt;" ><i>Reference Number</i></td>
+    //                     <td width="55%" style="font-size:6pt;border-bottom:1px solid black" ></td>
+    //                 </tr>
+    //                 <tr>
+    //                     <td width="100%" style="font-size:6pt;"><i>Procurement of GOODS</i></td>
+    //                 </tr>
+    //                 </table>
+    //             </td>
+    //             </tr>
+    //         </table>
+    //         ';
+
+
+
+
+
+
+
+
+    //         PDF::SetTitle('Invitation to Bid');
+    //         PDF::SetFont('helvetica', '', 9);
+    //         PDF::AddPage('P', array(215.9, 279.4));
+    //         PDF::writeHTML($Template, true, 0, true, 0);
+    //         PDF::Output(public_path() . '/prints.pdf', 'F');
+    //         $full_path = public_path() . '/prints.pdf';
+    //         if (\File::exists(public_path() . '/prints.pdf')) {
+    //             $file = \File::get($full_path);
+    //             $type = \File::mimeType($full_path);
+    //             $response = \Response::make($file, 200);
+    //             $response->header("Content-Type", $type);
+    //             return $response;
+    //         }
+    //     } catch (\Exception $e) {
+    //         return response()->json(new JsonResponse(['errormsg' => $e, 'status' => 'error']));
+    //     }
+    // }
+
+
+
     public function printAbstractBid(Request $request)
     {
         try {
@@ -1669,7 +2360,7 @@ class projectController extends Controller
             // $decl = $request->decl;
             $id = $main['id'];
             $projectx = db::table($this->Bac . '.bacc_proj')
-                ->leftJoin($this->Bac . '.bacc_proj_bid_declaration','bacc_proj_bid_declaration.bac_proj_id','bacc_proj.id')
+                ->leftJoin($this->Bac . '.bacc_proj_bid_declaration', 'bacc_proj_bid_declaration.bac_proj_id', 'bacc_proj.id')
                 ->where('bacc_proj.id', $main['id'])
                 ->get();
             $projectDatax = "";
@@ -1684,30 +2375,30 @@ class projectController extends Controller
                 ->where('entry_type', 'OBSERVER')
                 ->get();
 
-                $observe="";
-                $organization="";
-                // $f = new NumberFormatter("en", NumberFormatter::SPELLOUT);
-                // echo $f->format(1432);
+            $observe = "";
+            $organization = "";
+            // $f = new NumberFormatter("en", NumberFormatter::SPELLOUT);
+            // echo $f->format(1432);
 
-                // $numberInput = "";
-                foreach ($observer as $key => $value) {
-                    // if(isset($value->ABC)){
-                    //     $numberInput = $value->ABC;
-                    //     $locale = 'en_US';
-                    //     $fmt = numfmt_create($locale, NumberFormatter::SPELLOUT);
-                    //     $in_words = numfmt_format($fmt, $numberInput);
-                    //     echo $in_words;
-                    // }
+            // $numberInput = "";
+            foreach ($observer as $key => $value) {
+                // if(isset($value->ABC)){
+                //     $numberInput = $value->ABC;
+                //     $locale = 'en_US';
+                //     $fmt = numfmt_create($locale, NumberFormatter::SPELLOUT);
+                //     $in_words = numfmt_format($fmt, $numberInput);
+                //     echo $in_words;
+                // }
 
-                    $observe .= '  <tr>
+                $observe .= '  <tr>
                         <td width="20%" align="center" style="font-size:10pt;"><b><u>' . $value->name . '</u></b></td>
                         <td width="5%" style="font-size:10pt;"></td>
                     </tr>';
-                    $organization .= '  <tr>
+                $organization .= '  <tr>
                         <td width="20%" align="center" style="font-size:10pt;">' . $value->organization . '</td>
                         <td width="5%" style="font-size:10pt;"></td>
                     </tr>';
-                }
+            }
 
             // $present = db::table($this->Bac . '.bac_attendancemember')
             //     ->where('bac_attendancemember.category', 'member')
@@ -1761,15 +2452,15 @@ class projectController extends Controller
             // }
 
             // $data = db::select('call ' . $this->Bac . '.rans_bacc_resolutions_per_prPrint(?)', [$id]);
-                // db::table($this->Bac . '.bacc_resolution_details')
-                // ->join($this->Proc . '.tbl_pr_main', 'tbl_pr_main.id', 'bacc_resolution_details.pr_id')
-                // ->leftjoin($this->Proc . '.tbl_pr_detail', 'tbl_pr_detail.main_id', 'tbl_pr_main.id')
+            // db::table($this->Bac . '.bacc_resolution_details')
+            // ->join($this->Proc . '.tbl_pr_main', 'tbl_pr_main.id', 'bacc_resolution_details.pr_id')
+            // ->leftjoin($this->Proc . '.tbl_pr_detail', 'tbl_pr_detail.main_id', 'tbl_pr_main.id')
 
-                // // ->select('*' , 'unit_cost + total_cost as Total' )
-                // ->select("*", db::raw("SUM(total_cost) as Total"), db::raw("(pr_ref) AS 'PR'"))
-                // ->where('resolution_id', $main['id'])
-                // ->groupBy('bacc_resolution_details.id')
-                // ->get();
+            // // ->select('*' , 'unit_cost + total_cost as Total' )
+            // ->select("*", db::raw("SUM(total_cost) as Total"), db::raw("(pr_ref) AS 'PR'"))
+            // ->where('resolution_id', $main['id'])
+            // ->groupBy('bacc_resolution_details.id')
+            // ->get();
             // $total = $value->unit_cost + $value->total_cost;
             // $tableData = "";
             // $department = "";
@@ -1924,15 +2615,15 @@ class projectController extends Controller
                                         </tr>
                                         <tr>
                                             <td width="8%" style="font-size:10pt;" align="left">Project Title: </td>
-                                            <td width="48%" style="font-size:10pt;" align="left"><b><u> "'.$projectDatax->title_of_project.'" </u></b></td>
+                                            <td width="48%" style="font-size:10pt;" align="left"><b><u> "' . $projectDatax->title_of_project . '" </u></b></td>
                                             <td width="4%" style="font-size:10pt;" align="left"></td>
-                                            <td width="40%" style="font-size:10pt;" align="left">Reference No.: <b><u> '.$projectDatax->itb_no.' </u></b><br /> Date and Place of Bid: Opening: <b><u>'.$projectDatax->bid_opening.'</u></b></td>
+                                            <td width="40%" style="font-size:10pt;" align="left">Reference No.: <b><u> ' . $projectDatax->itb_no . ' </u></b><br /> Date and Place of Bid: Opening: <b><u>' . $projectDatax->bid_opening . '</u></b></td>
                                         </tr>
                                         <tr>
                                             <td width="100% style="font-size:1pt;""></td>
                                         </tr>
                                         <tr>
-                                            <td width="100%" style="font-size:10pt;" align="left">Approved Budget for the Contract: <b><u>P '.number_format($projectDatax->ABC,2).'</u></b></td>
+                                            <td width="100%" style="font-size:10pt;" align="left">Approved Budget for the Contract: <b><u>P ' . number_format($projectDatax->ABC, 2) . '</u></b></td>
                                         </tr>
                                         <tr>
                                             <td width="100%"></td>
@@ -1940,15 +2631,15 @@ class projectController extends Controller
                                         <table width="100%" border="1" cellpadding="2">
                                             <tr>
                                                 <td width="20%" align="center"><b> NAME OF BIDDER </b></td>
-                                                <td width="80%" align="left"><b> '.$projectDatax->winning_bidder.' </b></td>
+                                                <td width="80%" align="left"><b> ' . $projectDatax->winning_bidder . ' </b></td>
                                             </tr>
                                             <tr>
                                                 <td width="20%" align="center"><b> Total Amount of Bid </b></td>
-                                                <td width="80%" align="left"><b>P '.number_format($projectDatax->ABC,2).' </b></td>
+                                                <td width="80%" align="left"><b>P ' . number_format($projectDatax->ABC, 2) . ' </b></td>
                                             </tr>
                                             <tr>
                                                 <td width="20%" align="center"><b>  </b></td>
-                                                <td width="80%" align="left"><b> '.$this->G->numberTowords_W_dec($projectDatax->ABC).' </b></td>
+                                                <td width="80%" align="left"><b> ' . $this->G->numberTowords_W_dec($projectDatax->ABC) . ' </b></td>
                                             </tr>
                                             <tr>
                                                 <td width="20%" align="center"><b>  </b></td>
@@ -1956,7 +2647,7 @@ class projectController extends Controller
                                             </tr>
                                             <tr>
                                                 <td width="20%" align="center"><b> Bid Securing Declaration </b></td>
-                                                <td width="80%" align="left">'.$projectDatax->declaration.' </td>
+                                                <td width="80%" align="left">' . $projectDatax->declaration . ' </td>
                                             </tr>
 
                                         </table>
@@ -2001,8 +2692,8 @@ class projectController extends Controller
                                             <td width="100%"> </td>
                                         </tr>
 
-                                        '.$observe.'
-                                        '. $organization.'
+                                        ' . $observe . '
+                                        ' . $organization . '
 
 
             </table>';
@@ -2038,7 +2729,7 @@ class projectController extends Controller
             // PDF::SetHeaderMargin(2);
             // PDF::SetTopMargin(2);
             // PDF::SetMargins(2, 2, 2, 2);
-            PDF::SetFont('Helvetica', '', 7);
+            PDF::SetFont('Helvetica', '', 8);
             // -- set new background ---
             // $bMargin = PDF::getBreakMargin();
             // $auto_page_break = PDF::getAutoPageBreak();
@@ -2048,8 +2739,8 @@ class projectController extends Controller
             // PDF::setPageMark();
             // PDF::setImageScale(PDF_IMAGE_SCALE_RATIO);
 
-            $head = "FDP Form 10a - Bid Result on Civil Works<br/>Note: Bid Results are three(3) separate forms, particularly, for Civil (Form 10a-CW), Goods and Services (Form 10b-GS) and Consulting Services<br/>
-            (form 10c-cs). if there is no bidded project, good and services for the quarter, the forms must still be summitted with the said notation and signed according.";
+            $head = "FDP Form 10b - Bid Result on Good and Services<br/>Note: Bid Results are three(3) separate forms, particularly, for Civil (Form 10a-CW), Goods and Services (Form 10b-GS) and Consulting Services
+            (form 10c-cs).<br/> if there is no bidded project, good and services for the quarter, the forms must still be summitted with the said notation and signed according.";
             $qtr = '';
             if ($filter['quarter'] === "1") {
                 $qtr = '1st Quarter';
@@ -2080,34 +2771,50 @@ class projectController extends Controller
             <img src="' . public_path() . '/images/Logo1.png"  height="60" width="60">
             </th>
             <th style="font-size:9pt;" align="center">
-            Republic of the Philippines
-            <br>
-           ' . $title . '
-            <br>
-            Municipality of Dumanjug, Cebu
-            <br>
-            ' . $quarterly . '
+           <b>GOODS AND SERVICES</b>
+
             </th>
             <th align="left">
              <img src="' . public_path() . '/images/Logo2.png"  height="60" width="75">
             </th>
             </tr>
+                <tr>
+                    <td width="10%"><b>REGION</b></td>
+                    <td width="3%"><b>:</b></td>
+                    <td width="37%"><b>REGION VII - CETNRAL VISAYAS</b></td>
+                    <td width="40%" align="right"><b>CALENDAR YEAR:</b></td>
+                    <td width="10%"><b>2023</b></td>
+                </tr>
+                <tr>
+                    <td width="10%"><b>PROVINCE</b></td>
+                    <td width="3%"><b>:</b></td>
+                    <td width="37%"><b>CEBU</b></td>
+                    <td width="40%" align="right"><b>QUARTER:</b></td>
+                    <td width="10%"><b>2nd</b></td>
+                </tr>
+                <tr>
+                    <td width="10%"><b>CITY</b></td>
+                    <td width="3%"><b>:</b></td>
+                    <td width="37%"><b>CITY OF TALISAY</b></td>
+                    <td width="40%" align="right"><b></b></td>
+                    <td width="10%"><b></b></td>
+                </tr>
             </table> <br/><br/>';
 
             $Template = '
             ' . $header . '
+
+
             <table width="100%" border="1" cellpadding="2"  >
               <tr align="center">
                 <th width="3%" >No.</th>
                 <th width="8%" >Reference No.</th>
-                <th width="25%" >Name of Project</th>
+                <th width="32%" >Name of Project</th>
                 <th width="7%">Approved Budget for Contract</th>
-                <th width="15%">Location</th>
                 <th width="12%">Winning Bidder</th>
-                <th width="10%">Name and Address</th>
-                <th width="7%">Bid Amount</th>
-                <th width="5%">Bidding Date</th>
-                <th width="5%">Contract Duration</th>
+                <th width="19%">Name and Address</th>
+                <th width="8%">Bid Amount</th>
+                <th width="8%">Bidding Date</th>
               </tr>
               <tbody>';
             foreach ($data as $key => $value) {
@@ -2119,100 +2826,32 @@ class projectController extends Controller
                 <td>' . $value['ref'] . '<br/>ITB No. ' . $value['itb_no'] . '</td>
                 <td>' . $value['title_of_project'] . '</td>
                 <td>' . number_format($value['ABC'], 2) . '</td>
-                <td>' . $value['location'] . '</td>
                 <td>' . $value['business_name'] . '</td>
                 <td>' . $value['reference_owner_name'] . '<br/>' . $value['reference_address'] . '</td>
                 <td>' . number_format($value['contract_cost'], 2) . '</td>
                 <td>' . $bidDate . '</td>
-                <td>' . $value['contract_duration'] . '</td>
               </tr>';
             }
             $Template .= '</tbody></table><br><br>';
 
             $Template .= 'We hereby certify that we have reviewed the contents and hereby attest to the veracity and correctness of the data or information contained in this document. <br/><br/><br/><br/><br/><br/>';
 
-            // $Template .= '<table width ="100%" cellspacing ="10">
-            // <tr align="center">
-            //   <td>
-            //     <table align="center">
-            //     <tr align="center">
-            //      <td>(sgd.)</td>
-            //     </tr>
-            //     <tr>
-            //      <td style = "border-bottom: 1px solid black;">ENGR. ARTHUR S. VILLAMOR</td>
-            //     </tr>
-            //     <tr>
-            //      <td>Chairman</td>
-            //     </tr>
-            //     </table>
-            //   </td>
-            //   <td>
-            //    <table>
-            //     <tr>
-            //      <td>(sgd.)</td>
-            //     </tr>
-            //     <tr>
-            //      <td style = "border-bottom: 1px solid black;">ENGR. JOVENO C. GARCIA</td>
-            //     </tr>
-            //     <tr>
-            //      <td>Vice - Chairman</td>
-            //     </tr>
-            //    </table>
-            //   </td>
-            //   <td>
-            //    <table>
-            //     <tr>
-            //      <td>(sgd.)</td>
-            //     </tr>
-            //     <tr>
-            //      <td style = "border-bottom: 1px solid black;">ENGR. MA. ALPHA P. ALOJADO</td>
-            //     </tr>
-            //     <tr>
-            //      <td>BAC Member</td>
-            //     </tr>
-            //    </table>
-            //   </td>
-            //   <td>
-            //    <table>
-            //     <tr>
-            //      <td>(sgd.)</td>
-            //     </tr>
-            //     <tr>
-            //      <td style = "border-bottom: 1px solid black;">CERTERIA V. BUENAVISTA</td>
-            //     </tr>
-            //     <tr>
-            //      <td>BAC Member</td>
-            //     </tr>
-            //    </table>
-            //   </td>
-            //   <td>
-            //   <table>
-            //    <tr>
-            //     <td>(sgd.)</td>
-            //    </tr>
-            //    <tr>
-            //     <td style = "border-bottom: 1px solid black;">FLORDELIS L. ABABA</td>
-            //    </tr>
-            //    <tr>
-            //     <td>BAC Member</td>
-            //    </tr>
-            //   </table>
-            //  </td>
-            //  <td>
-            //  <table>
-            //   <tr>
-            //    <td>(sgd.)</td>
-            //   </tr>
-            //   <tr>
-            //    <td style = "border-bottom: 1px solid black;">ENGR. ARTHUR S. VILLAMOR</td>
-            //   </tr>
-            //   <tr>
-            //    <td>Chairman</td>
-            //   </tr>
-            //  </table>
-            // </td>
-            // </tr>
-            // </table>';
+            $Template .= '<table width ="100%" >
+             <tr>
+                <td width="10%"></td>
+                <td width="30%" style="border-bottom:1px solid black; font-size:9pt" align="center"><b>ROY R. ALCOSEBA</b></td>
+                <td width="20%"></td>
+                <td width="30%" style="border-bottom:1px solid black; font-size:9pt" align="center"><b>EDGAR M. MABUNAY</b></td>
+                <td width="10%"></td>
+             </tr>
+             <tr>
+                <td width="10%"></td>
+                <td width="30%" align="center"><i>BAC Secretariat Head (Assitant City Budget Officer)</i></td>
+                <td width="20%"></td>
+                <td width="30%" align="center"><i>Chairman (City Budget Officer)</i></td>
+                <td width="10%"></td>
+            </tr>
+            </table>';
 
             PDF::writeHTML($Template, true, 0, true, 0);
             PDF::Output(public_path() . '/prints.pdf', 'F');
@@ -2226,6 +2865,62 @@ class projectController extends Controller
             }
         } catch (\Exception $e) {
             // log::debug($e);
+            return response()->json(new JsonResponse(['errormsg' => $e, 'status' => 'error']));
+        }
+    }
+    public function PrintBidOut2(Request $request)
+    {
+        try {
+
+
+
+            $Template = '<table width="100%" cellpadding="2">
+                <tr>
+                    <td><b>FDP Form 10b - Bid Result on Good and Services</b></td>
+                </tr>
+                <tr>
+                    <td>Note: Bid Results are three(3) separate forms, particularly, for Civil (Form 10a-CW), Goods and Services (Form 10b-GS) and Consulting Services
+                    (form 10c-cs)</td>
+                </tr>
+                <tr>
+                    <td>If there is no bidded project, good and services for the quarter, the forms must still be summitted with the said notation and signed accordingly.</td>
+                </tr>
+                <br/>
+                <tr>
+                    <td align="center" style="font-size:10pt"><b>GOODS AND SERVICES BID-OUT</b></td>
+                </tr>
+                <br/>
+                <tr>
+                    <td width="10%"><b>REGION</b></td>
+                    <td width="3%"><b>:</b></td>
+                    <td width="37%"><b>REGION VII - CETNRAL VISAYAS</b></td>
+                    <td width="40%" align="right"><b>CALENDAR YEAR:</b></td>
+                    <td width="10%"><b>2023</b></td>
+                </tr>
+                <tr>
+                    <td width="10%"><b>REGION</b></td>
+                    <td width="3%"><b>:</b></td>
+                    <td width="37%"><b>REGION VII - CETNRAL VISAYAS</b></td>
+                    <td width="40%" align="right"><b>CALENDAR YEAR:</b></td>
+                    <td width="10%"><b>2023</b></td>
+                </tr>
+            </table>
+            ';
+
+            PDF::SetTitle('ABSTRACT OF BIDS AS CALCULATED');
+            PDF::SetFont('helvetica', '', 9);
+            PDF::AddPage('L', array(215.9, 330.2));
+            PDF::writeHTML($Template, true, 0, true, 0);
+            PDF::Output(public_path() . '/prints.pdf', 'F');
+            $full_path = public_path() . '/prints.pdf';
+            if (\File::exists(public_path() . '/prints.pdf')) {
+                $file = \File::get($full_path);
+                $type = \File::mimeType($full_path);
+                $response = \Response::make($file, 200);
+                $response->header("Content-Type", $type);
+                return $response;
+            }
+        } catch (\Exception $e) {
             return response()->json(new JsonResponse(['errormsg' => $e, 'status' => 'error']));
         }
     }
@@ -2308,7 +3003,7 @@ class projectController extends Controller
         if ($zip_val->open($full_path) == true) {
             $key_file_name = 'word/document.xml';
             $message = $zip_val->getFromName($key_file_name);
-            $message = str_replace("@title",str_replace("@","at",str_replace("&","and",$datax['title_of_project'])), $message);
+            $message = str_replace("@title", str_replace("@", "at", str_replace("&", "and", $datax['title_of_project'])), $message);
             $message = str_replace("@sof", $datax['SOF'], $message);
             $message = str_replace("@duration", $datax['contract_duration'], $message);
             $message = str_replace("@amount", number_format($datax['ABC'], 2), $message);
@@ -2328,7 +3023,7 @@ class projectController extends Controller
             // $message = str_replace("@sigPos", $signaPos, $message);
             $zip_val->addFromString($key_file_name, $message);
             $zip_val->close();
-            log::debug( $message );
+            log::debug($message);
 
             if (\File::exists(public_path() . "/" . $full_path)) {
                 $file = \File::get($full_path);
@@ -2336,9 +3031,7 @@ class projectController extends Controller
                 $response = \Response::make($file, 200);
                 $response->header("Content-Type", $type);
                 return $response;
-
             }
-
         }
     }
     function storeInvitationBID(Request $request)
@@ -2382,8 +3075,9 @@ class projectController extends Controller
         }
         return response()->json(new JsonResponse($list));
     }
-    function getGSDocs($docs){
-        return 'storage/files/gso/' . $docs ;
+    function getGSDocs($docs)
+    {
+        return 'storage/files/gso/' . $docs;
     }
     function printLetter($id)
     {
@@ -2474,6 +3168,640 @@ class projectController extends Controller
             $Template .= $veryTruly;
             $Template .= "<br><br><br>Approved By:<br><br>";
             $Template .= $approved_by;
+            PDF::writeHTML($Template, true, 0, true, 0);
+            PDF::Output(public_path() . '/prints.pdf', 'F');
+            $full_path = public_path() . '/prints.pdf';
+            if (\File::exists(public_path() . '/prints.pdf')) {
+                $file = \File::get($full_path);
+                $type = \File::mimeType($full_path);
+                $response = \Response::make($file, 200);
+                $response->header("Content-Type", $type);
+                return $response;
+            }
+        } catch (\Exception $e) {
+            return response()->json(new JsonResponse(['errormsg' => $e, 'status' => 'error']));
+        }
+    }
+    public function printNOATemplate(Request $request)
+    {
+        try {
+            $data = $request->data;
+            // log::debug($data['contract_cost'] * 1);
+            $b = $data['amountWord'];
+            // log::debug($b);
+            // $totalAmount = '2332.01';
+            // $amountInWords = ucwords((new NumberFormatter('en_IN', NumberFormatter::SPELLOUT))->format($totalAmount));
+            // log::debug($amountInWords);
+            $Template = '<table>
+            <tr>
+                <th width="32%" align="right">
+                <img src="' . public_path() . '/img/logo1.png"  height="45" width="45">
+                </th>
+                <th width="38%" style="font-size:9pt;  word-spacing:30px" align="center">
+                        Republic of the Philippines
+                <br />
+                        Province of Cebu
+                <br />
+
+                    Municipality of Dumanjug
+                <br />
+                    </th>
+
+                <th align="left">
+
+                </th>
+            </tr>
+            <tr>
+                <th width="100%" style="font-size:15pt;color:blue ;border-bottom:double" align="center"><b>OFFICE OF THE BIDS AND AWARDS COMMITTEE</b>
+                </th>
+            </tr>
+            </table>
+
+            <table>
+                <tr>
+                    <td width="100%"></td>
+                </tr>
+                 <tr>
+                    <td width="100%"></td>
+                </tr>
+                <tr>
+                    <td width="20%" style="border-bottom:1px solid black"></td>
+                    <td width="80%"></td>
+                </tr>
+                <tr>
+                    <td width="20%" align="center">Date</td>
+                    <td width="80%"></td>
+                </tr>
+                <tr>
+                    <td width="100%"></td>
+                </tr>
+                <tr>
+                    <td width="100%"></td>
+                </tr>
+                <tr>
+                    <td><b>' . $data['winning_bidder'] . '</b></td>
+                </tr>
+                <tr>
+                    <td>' . $data['reference_address'] . '</td>
+                </tr>
+                <tr>
+                    <td width="100%"></td>
+                </tr>
+                <tr>
+                    <td width="100%"></td>
+                </tr>
+                <tr>
+                    <td width="100%" style="font-size:15pt" align="center"><b><u>NOTICE OF AWARD</u></b></td>
+                </tr>
+                <tr>
+                    <td width="100%"></td>
+                </tr>
+                <tr>
+                    <td width="17%">Project Description:</td>
+                    <td width="83%"><b>' . $data['title_of_project'] . '<br/>at ' . $data['project_loc'] . ', ' . $data['project_loc_CityProvince'] . ', Cebu, <br/>
+                                            P.R # ' . $data['pr_no'] . '</b></td>
+                </tr>
+                <tr>
+                    <td width="100%"></td>
+                </tr>
+                <tr>
+                    <td style="text-justify: inter-word; text-align: justify">The Municipality of Dumanjug has considered your company for the above-described
+                        work and you are hereby notified that your price <b><i>' . strtoupper($b) . ' (' . number_format($data['contract_cost'], 2) . '):</i></b></td>
+                </tr>
+                <tr>
+                    <td width="100%"></td>
+                </tr>
+                <tr>
+                    <td style="text-justify: inter-word; text-align: justify">Within a maximum period of ten (10) calender days from the receipt of the Notice of Award and in all
+                    cases upon the signing of the contract, you should furnish the Procuring Entity with the perfomance security in accordance with the Conditions of Contract, and
+                    in the Form prescribed in the Bidding Documents. It must be posted in favor of the Procuring Entity, and will be forfeited in the latter\'s favor in the event it
+                    is established that the winning bidder is in default in any obligations under the contact. The performance security forms part of the contract.</td>
+                </tr>
+                <tr>
+                    <td width="100%"></td>
+                </tr>
+                <tr>
+                    <td style="text-justify: inter-word; text-align: justify">You are therefore required to contact the Municipality of Dumanjug for the preparation of Contract/ Agreement and furnish
+                     all other requirements forming part of the Contract/Agreement as soon as possible</td>
+                </tr>
+                <tr>
+                    <td width="100%"></td>
+                </tr>
+                <tr>
+                    <td style="font-size:10pt"><b><u>Per BAC Resolution No. ' . $data['sp_resolution_no'] . '</u></b></td>
+                </tr>
+                <tr>
+                    <td width="100%"></td>
+                </tr>
+                <tr>
+                    <td width="100%"></td>
+                </tr>
+                <tr>
+                    <td width="100%"></td>
+                </tr>
+                <br/>
+                <br/>
+                <tr>
+                    <td width="50%">Recommending Approval:</td>
+                    <td width="50%">Approved by:</td>
+                </tr>
+                <tr>
+                    <td width="100%"></td>
+                </tr>
+                <tr>
+                    <td width="100%"></td>
+                </tr>
+                <tr>
+                    <td width="100%"></td>
+                </tr>
+                <tr>
+                    <td width="50%" style="font-size:11pt"><b>_____________</b></td>
+                    <td width="50%" style="font-size:11pt" style="text-align:center"><b>Hon. EFREN GUNTRANO Z. GICA</b></td>
+                </tr>
+                <tr>
+                    <td width="50%">City Budget Officer/BAC Chairman</td>
+                    <td width="50%" style="text-align:center">Municipality Mayor</td>
+                </tr>
+
+                <tr>
+                    <td width="100%"></td>
+                </tr>
+                <tr>
+                    <td width="100%"></td>
+                </tr>
+                <tr>
+                    <td width="5%"></td>
+                    <td width="50%">Receipt of the foregoing Notice of Award is hereby acknowledged this</td>
+                    <td width="5%" style="border-bottom:1px solid black"></td>
+                    <td width="7%">day of</td>
+                    <td width="10%" style="border-bottom:1px solid black"></td>
+                    <td width="23%">, ' . (!empty($data['noa']) ? (date_format(date_create($data['noa']), "Y")) : "") . '.</td>
+                </tr>
+                <br/>
+                <br/>
+                <tr>
+                    <td width="50%"></td>
+                    <td width="50%">Conforme:</td>
+                </tr>
+                <br/>
+                <br/>
+                <tr>
+                    <td width="50%"></td>
+                    <td width="5%">By:</td>
+                    <td width="30%" style="border-bottom:1px solid black"></td>
+                    <td width="15%"></td>
+
+
+
+
+
+                </tr>
+                <tr>
+                    <td width="55%"></td>
+                    <td width="30%" style="font-size:7pt" align="center">Signature over printed name</td>
+                    <td width="15%"></td>
+                </tr>
+            </table>
+            ';
+
+            PDF::SetTitle('Notice of Award');
+            PDF::SetFont('helvetica', '', 9);
+            PDF::AddPage('P', array(215.9, 279.4));
+            PDF::writeHTML($Template, true, 0, true, 0);
+            PDF::Output(public_path() . '/prints.pdf', 'F');
+            $full_path = public_path() . '/prints.pdf';
+            if (\File::exists(public_path() . '/prints.pdf')) {
+                $file = \File::get($full_path);
+                $type = \File::mimeType($full_path);
+                $response = \Response::make($file, 200);
+                $response->header("Content-Type", $type);
+                return $response;
+            }
+        } catch (\Exception $e) {
+            return response()->json(new JsonResponse(['errormsg' => $e, 'status' => 'error']));
+        }
+    }
+
+    public function printContractBids(Request $request)
+    {
+        try {
+
+            $data = $request->data;
+
+
+            $Template = '<table cellpadding="2">
+                <tr>
+                    <td width="65%">
+                        <table>
+                            <tr>
+                                <td>LGU - Municipality of Dumanjug, Cebu</td>
+                            </tr>
+                            <tr>
+                                <td width="100%"></td>
+                            </tr>
+                            <tr>
+                                <td style="font-size:10pt"><b>INFRASTRUCTURE</b></td>
+                            </tr>
+                            <tr>
+                                <td width="30%"></td>
+                                <td width="60%" align="center" style="font-size:13pt"><b>ABSTRACT OF BIDS AS CALCULATED</b></td>
+                            </tr>
+                            <tr>
+                                <td width="100%"></td>
+                            </tr>
+                            <tr>
+                                <td width="30%"><b>ADVERTISEMENT</b></td>
+                                <td width="4%">:</td>
+                                <td width="63%" style="border-bottom:1px solid black"><b></b></td>
+                                <td width="3%"></td>
+                            </tr>
+                            <tr>
+                                <td width="30%"><b></b></td>
+                                <td width="4%">:</td>
+                                <td width="63%" style="border-bottom:1px solid black"></td>
+                                <td width="3%"></td>
+                            </tr>
+                            <tr>
+                                <td width="30%">Project Name</td>
+                                <td width="4%">:</td>
+                                <td width="63%" style="border-bottom:1px solid black"><b>' . $data['title_of_project'] . '</b></td>
+                                <td width="3%"></td>
+                            </tr>
+                            <tr>
+                                <td width="30%"><b></b></td>
+                                <td width="4%">:</td>
+                                <td width="63%" style="border-bottom:1px solid black"></td>
+                                <td width="3%"></td>
+                            </tr>
+                            <tr>
+                                <td width="30%">Project Location</td>
+                                <td width="4%">:</td>
+                                <td width="63%" style="border-bottom:1px solid black"><b>at ' . $data['project_loc'] . '</b></td>
+                                <td width="3%"></td>
+                            </tr>
+                            <tr>
+                                <td width="100%"></td>
+                            </tr>
+                            <tr>
+                                <td width="30%">Implementing Office</td>
+                                <td width="4%">:</td>
+                                <td width="63%" style="border-bottom:1px solid black">' . $data['dept'] . '</td>
+                                <td width="3%"></td>
+                            </tr>
+                            <tr>
+                                <td width="30%">Approved Budget for the Contract</td>
+                                <td width="4%">:</td>
+                                <td width="63%" style="border-bottom:1px solid black">' . number_format($data['ABC'], 2) . '</td>
+                                <td width="3%"></td>
+                            </tr>
+                            <tr>
+                                <td width="30%">Time and Place of Bid Opening</td>
+                                <td width="4%">:</td>
+                                <td width="63%" style="border-bottom:1px solid black">10 a.m @ BAC Conference Room</td>
+                                <td width="3%"></td>
+                            </tr>
+
+                        </table>
+                    </td>
+
+
+                    <td width="35%">
+                        <table>
+                            <tr>
+                                <td width="100%"></td>
+                            </tr>
+                            <tr>
+                                <td width="40%">Project Ref. No.</td>
+                                <td width="60%" style="border-bottom:1px solid black"><b>P.O.W # ' . $data['reference_no'] . '</b></td>
+                            </tr>
+                            <tr>
+                                <td width="100%"></td>
+                            </tr>
+                            <tr>
+                                <td width="40%">Name of Project</td>
+                                <td width="60%" style="border-bottom:1px solid black"><b>' . $data['title_of_project'] . '</b></td>
+                            </tr>
+                            <tr>
+                                <td width="100%"></td>
+                            </tr>
+                            <tr>
+                                <td width="40%">Location of the Project</td>
+                                <td width="60%" style="border-bottom:1px solid black">at ' . $data['project_loc'] . '</td>
+                            </tr>
+                            <tr>
+                                <td width="100%"></td>
+                            </tr>
+                            <tr>
+                                <td width="40%">BAC Resolution:</td>
+                                <td width="60%" style="border-bottom:1px solid black" align="center"><b>' . $data['sp_resolution_no'] . '</b></td>
+                            </tr>
+                            <tr>
+                                <td width="40%">Bidding Date</td>
+                                <td width="60%" style="border-bottom:1px solid black" align="center">' . $data['bid_opening'] . '</td>
+                            </tr>
+                            <tr>
+                                <td width="40%">Time</td>
+                                <td width="60%" style="border-bottom:1px solid black" align="center">10:00 a.m</td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+
+            </table>
+            <br/>
+            <br/>
+            <table cellpadding="2" border="1">
+                <tr>
+                    <td width="40%" height="20px" align="center"><b>NAME OF BIDDERS</b></td>
+                    <td width="20%" align="center"><b>' . $data['winning_bidder'] . '</b></td>
+                    <td width="20%" ></td>
+                    <td width="20%" ></td>
+                </tr>
+                <tr>
+                    <td width="40%" >Total Amount of Bid</td>
+                    <td width="20%" align="right">' . number_format($data['bidamount'], 2) . '</td>
+                    <td width="20%" ></td>
+                    <td width="20%" ></td>
+                </tr>
+                <tr>
+                    <td width="40%" >Form of Bid Security</td>
+                    <td width="20%" align="right">Bid Securing Declaration</td>
+                    <td width="20%" ></td>
+                    <td width="20%" ></td>
+                </tr>
+                <tr>
+                    <td width="40%" >&nbsp; &nbsp; &nbsp; &nbsp; Bank/Company</td>
+                    <td width="20%" align="right"></td>
+                    <td width="20%" ></td>
+                    <td width="20%" ></td>
+                </tr>
+                <tr>
+                    <td width="40%" >&nbsp; &nbsp; &nbsp; &nbsp; Number</td>
+                    <td width="20%" align="right"></td>
+                    <td width="20%" ></td>
+                    <td width="20%" ></td>
+                </tr>
+                <tr>
+                    <td width="40%" >&nbsp; &nbsp; &nbsp; &nbsp; Validity Period</td>
+                    <td width="20%" align="right"></td>
+                    <td width="20%" ></td>
+                    <td width="20%" ></td>
+                </tr>
+                <tr>
+                    <td width="40%" >&nbsp; &nbsp; &nbsp; &nbsp; Bid Security</td>
+                    <td width="20%" align="right"></td>
+                    <td width="20%" ></td>
+                    <td width="20%" ></td>
+                </tr>
+                <tr>
+                    <td width="40%" >Required Bid Security</td>
+                    <td width="20%" align="right"></td>
+                    <td width="20%" ></td>
+                    <td width="20%" ></td>
+                </tr>
+                <tr>
+                    <td width="40%" >Sufficient / Insufficient</td>
+                    <td width="20%" align="right">Sufficient</td>
+                    <td width="20%" ></td>
+                    <td width="20%" ></td>
+                </tr>
+                <tr>
+                    <td width="40%" >Remarks</td>
+                    <td width="20%" align="right"></td>
+                    <td width="20%" ></td>
+                    <td width="20%" ></td>
+                </tr>
+            </table>
+            <br/>
+            <br/>
+            <br/>
+            <br/>
+            <br/>
+            <table>
+                <tr>
+                    <td width="25%" style="font-size:10pt"><b>_________________________</b></td>
+                    <td width="25%" style="font-size:10pt"><b>_________________________</b></td>
+                    <td width="25%" style="font-size:10pt"><b>_________________________</b></td>
+                    <td width="25%" style="font-size:10pt"><b>_________________________</b></td>
+                </tr>
+                <tr>
+                    <td width="25%" style="font-size:10pt"><i>Chairman (City Budget Officer)</i></td>
+                    <td width="25%" style="font-size:10pt"><i>Vice-Chairman (City Administrator)</i></td>
+                    <td width="25%" style="font-size:10pt"><i>Member (Attorney III)</i></td>
+                    <td width="25%" style="font-size:10pt"><i>Member (Engineer II)</i></td>
+                </tr>
+                <br/>
+                <br/>
+                <tr>
+                    <td width="25%"></td>
+                    <td width="25%"></td>
+                    <td width="25%"></td>
+                    <td width="25%">Approved:</td>
+                </tr>
+                <tr>
+                    <td width="100%"></td>
+                </tr>
+                <tr>
+                    <td width="100%"></td>
+                </tr>
+                <tr>
+                    <td width="25%" style="font-size:10pt"><b>_________________________</b></td>
+                    <td width="25%" style="font-size:10pt"><b>_________________________</b></td>
+                    <td width="25%" style="font-size:10pt"><b>_________________________</b></td>
+                    <td width="25%" style="font-size:10pt"><b>_________________________</b></td>
+                </tr>
+                <tr>
+                    <td width="25%" style="font-size:10pt"><i>Member (Lincensing Officer III)</i></td>
+                    <td width="25%" style="font-size:10pt"><i>Member (City Legal Officer)</i></td>
+                    <td width="25%" style="font-size:10pt"><i>Member (GSO)</i></td>
+                    <td width="20%" align="center" style="font-size:10pt"><i>City Mayor</i></td>
+                    <td width="5%"></td>
+                </tr>
+            </table>
+            ';
+
+            PDF::SetTitle('ABSTRACT OF BIDS AS CALCULATED');
+            PDF::SetFont('helvetica', '', 9);
+            PDF::AddPage('L', array(215.9, 330.2));
+            PDF::writeHTML($Template, true, 0, true, 0);
+            PDF::Output(public_path() . '/prints.pdf', 'F');
+            $full_path = public_path() . '/prints.pdf';
+            if (\File::exists(public_path() . '/prints.pdf')) {
+                $file = \File::get($full_path);
+                $type = \File::mimeType($full_path);
+                $response = \Response::make($file, 200);
+                $response->header("Content-Type", $type);
+                return $response;
+            }
+        } catch (\Exception $e) {
+            return response()->json(new JsonResponse(['errormsg' => $e, 'status' => 'error']));
+        }
+    }
+    public function printRFQ(Request $request)
+    {
+        try {
+
+            $data = $request->data;
+            $mainData = "";
+            $prDescription = DB::table($this->Bac . '.bacc_proj')
+                ->leftjoin($this->Proc . '.pow_main_individual', 'pow_main_individual.id', 'bacc_proj.pow_id')
+                ->leftjoin($this->Proc . '.tbl_pr_main', 'tbl_pr_main.pow_id', 'pow_main_individual.id')
+                ->leftjoin($this->Proc . '.tbl_pr_detail', 'tbl_pr_detail.main_id', 'tbl_pr_main.id')
+                ->where('bacc_proj.pow_id', $data['pow_id'])
+                ->get();
+
+
+            $bidder = db::table($this->Bac . ".bacc_bid_opening")->where("proj_id", $data['id'])->get();
+            $bidder1 = "";
+            $bidder2 = "";
+            $bidder3 = "";
+            $bidder1amount = "";
+            $bidder2amount = "";
+            $bidder3amount = "";
+            $winner = "";
+            $itm = "";
+            foreach ($bidder as $key => $value) {
+                if ($value->winner === "1") {
+                    $winner = $value->business_name;
+                }
+                if ($key === 0) {
+                    $bidder1 = $value->business_name;
+                    $bidder1amount =  number_format($value->bidamount, 2);
+                }
+                if ($key === 1) {
+                    $bidder2 = $value->business_name;
+                    $bidder2amount = number_format($value->bidamount, 2);
+                }
+                if ($key === 2) {
+                    $bidder3 = $value->business_name;
+                    $bidder3amount = number_format($value->bidamount, 2);
+                }
+            }
+            foreach ($prDescription as $key => $value) {
+                $itm .= '<tr>
+                <td width="10%" align="center">' . ($key + 1) . '</td>
+                <td width="10%" align="center">' . $value->qty . '</td>
+                <td width="10%" align="center">' . $value->unit_measure . '</td>
+                <td width="25%" align="center"><b>' . $value->item_name . ' <br/><br/></b></td>
+                <td width="15%" align="center">' . $bidder1amount . '</td>
+                <td width="15%" align="center">' . $bidder2amount . '</td>
+                <td width="15%" align="center">' . $bidder3amount . '</td>
+            </tr>';
+            }
+            $datepostqua = date_create($data['post_qua']);
+            // log::debug($bidder);
+
+            $Template = '  <table width="100%" cellpadding="2">
+                <tr>
+                    <td width="65%" style="font-size:10pt">LGU - Municipality of Dumanjug, Cebu</td>
+                    <td width="12%" style="font-size:10pt">Project Ref. No.</td>
+                    <td width="23%" style="border-bottom:1px solid black;font-size:10pt">' . $data['reference_no'] . '</td>
+                </tr>
+                <tr>
+                    <td width="65%" style="font-size:10pt">ALTERNATIVE MODE OF PROCUREMENT<br/>-Negotiated Procurement</td>
+                    <td width="12%" style="font-size:10pt">Name of Project</td>
+                    <td width="23%" style="border-bottom:1px solid black;font-size:10pt">' . $data['title_of_project'] . '</td>
+                </tr>
+                <tr>
+                    <td width="65%" style="font-size:10pt"></td>
+                    <td width="12%" style="font-size:10pt">Location of the Project</td>
+                    <td width="23%" style="border-bottom:1px solid black;font-size:10pt">' . $data['project_loc'] . '</td>
+                </tr>
+                <tr>
+                    <td width="65%" style="font-size:10pt"></td>
+                    <td width="12%" style="font-size:10pt">BAC Resolution No.</td>
+                    <td width="23%" style="border-bottom:1px solid black;font-size:10pt" align="center">28-1</td>
+                </tr>
+                <tr>
+                    <td width="28.3%" style="font-size:10pt"></td>
+                    <td width="33.5%" style="font-size:15pt" align="right"><b>ABSTRACT OF CANVASS</b></td>
+                    <td width="3%" style="font-size:10pt"></td>
+                    <td width="12.2%" style="font-size:10pt" align="left">Date</td>
+                    <td width="23%" style="border-bottom:1px solid black;font-size:10pt" align="center">' . (!empty($data['session_date']) ? (date_format(date_create($data['session_date']), "d M, Y")) : "") . '</td>
+                </tr>
+                <tr>
+                    <td width="100%" style="font-size:11pt" align="center"><b>Request for Quotation (RFQ)</b> </td>
+                </tr>
+
+            </table>
+            ';
+
+            $Template .= '<table width="100%" cellpadding="2">
+
+                <table width="100%" cellpadding="2" border="1">
+                <tr>
+                    <td width="10%" align="center"><b>ITEM NO</b></td>
+                    <td width="10%" align="center"><b>QTY</b></td>
+                    <td width="10%" align="center"><b>UNIT</b></td>
+                    <td width="25%" align="center"><b>ARTICLES</b></td>
+                    <td width="15%" align="center"><b>' . $bidder1 . '</b></td>
+                    <td width="15%" align="center"><b>' . $bidder2 . '</b></td>
+                    <td width="15%" align="center"><b>' . $bidder3 . '</b></td>
+                </tr>
+                ' . $itm . '
+                </table>
+                <tr>
+                    <td width="17%" style="font-size:10pt">Based on <i>CANVASS DATE: </i></td>
+                     <td width="17%"style="border-bottom:1px solid black;font-size:10pt;text-align:center">' . date_format($datepostqua, "m/d/Y") . '</td>
+                     <td width="23%" style="font-size:10pt">Based on <i>AWARD is hereby given to: </i></td>
+                     <td width="43%"style="border-bottom:1px solid black;font-size:10pt">' .  $winner . '</td>
+                </tr>
+                <tr>
+                    <td width="100%">
+                    </td>
+                </tr>
+                <tr>
+                    <td width="100%">
+                    </td>
+                </tr>
+                <tr>
+                    <td width="100%">
+                    </td>
+                </tr>
+                <tr>
+                    <td width="25%" style="font-size:10pt"><b>EDGAR M. MABUNAY</b></td>
+                    <td width="25%" style="font-size:10pt"><b>Atty. RUDELYN C. NAVARRO</b></td>
+                    <td width="25%" style="font-size:10pt"><b>Atty. BEVERTLY I. TUTOR</b></td>
+                    <td width="25%" style="font-size:10pt"><b>Engr. ARNEL C. BACALSO</b></td>
+                </tr>
+                <tr>
+                    <td width="25%" style="font-size:10pt"><i>Chairman (City Budget Officer)</i></td>
+                    <td width="25%" style="font-size:10pt"><i>Vice-Chairman (City Administrator)</i></td>
+                    <td width="25%" style="font-size:10pt"><i>Member (Attorney III)</i></td>
+                    <td width="25%" style="font-size:10pt"><i>Member (Assistant City Engineer)</i></td>
+                </tr>
+
+                <tr>
+                    <td width="100%">
+                    </td>
+                </tr>
+                <tr>
+                    <td width="57%"></td>
+                    <td width="43%" align="center"> Approved: </td>
+                </tr>
+                <tr>
+                    <td width="100%">
+                    </td>
+                </tr>
+
+                <tr>
+                    <td width="25%" style="font-size:10pt"><b>Ms. MARY JANE A. ENRILE</b></td>
+                    <td width="25%" style="font-size:10pt"><b>Atty. GIOVANNI D. SUSUSCO</b></td>
+                    <td width="25%" style="font-size:10pt"><b>Ms. ASARIA P. CAÑAL</b></td>
+                    <td width="25%" style="font-size:10pt"><b>GERALD ANTHONY V. GULLAS JR.</b></td>
+                </tr>
+                <tr>
+                    <td width="25%" style="font-size:10pt"><i>Member (Licensing Officer III)</i></td>
+                    <td width="25%" style="font-size:10pt"><i>City Legal Officer</i></td>
+                    <td width="25%" style="font-size:10pt"><i>Member (GSO)</i></td>
+                    <td width="25%" style="font-size:10pt"><i>City Mayor</i></td>
+                </tr>
+
+            </table>';
+
+            PDF::SetTitle('Post Qualification');
+            PDF::SetFont('helvetica', '', 9);
+            PDF::AddPage('L');
             PDF::writeHTML($Template, true, 0, true, 0);
             PDF::Output(public_path() . '/prints.pdf', 'F');
             $full_path = public_path() . '/prints.pdf';

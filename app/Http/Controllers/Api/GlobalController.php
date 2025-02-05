@@ -146,6 +146,10 @@ class GlobalController extends Controller
     {
         return 'naga_qr';
     }
+    public function getEngDb()
+    {
+        return 'qpsii_lguengineering';
+    }
     public function getCENRODb()
     {
         return 'cenro';

@@ -89,16 +89,16 @@ class eligibilityController extends Controller
     {
         // log::debug('asd');
         $list = db::table($this->Bac . '.eligibility_main')
-        ->join($this->Bac . '.eligibility_remarks', 'eligibility_main.id', '=', 'eligibility_remarks.main_id')
-        ->join($this->budget . '.cto_budget_mode_pro', 'cto_budget_mode_pro.id', '=', 'eligibility_main.mop')
-        ->select('eligibility_main.*', 'cto_budget_mode_pro.mode_pro_desc', db::raw("GROUP_CONCAT(eligibility_remarks.`remarks` SEPARATOR '<br>') as remarks"))
-        ->where('eligibility_main.stat', 0)
-        ->where('eligibility_main.validity','!=', 'NULL')
-        // ->whereRaw(" (`business_name` like ? or `business_owner` like ? or `eligibility_description` like ? or `mode_pro_desc` like ? or `remarks` like ? or `validity` like ? ) ",['%' . $request->dataz . '%','%' . $request->dataz . '%','%' . $request->dataz . '%', '%' . $request->dataz . '%','%' . $request->dataz . '%','%' . $request->dataz . '%'])
-        // ->whereYear('validity', Carbon::now()->year)
-        ->whereBetween(db::raw('ifnull(date(validity),"")'),[$request->yearFrom, $request->yearTo])
-        ->orderBy('eligibility_main.validity', 'desc')
-        ->groupBy('eligibility_main.id')->get();
+            ->join($this->Bac . '.eligibility_remarks', 'eligibility_main.id', '=', 'eligibility_remarks.main_id')
+            ->join($this->budget . '.cto_budget_mode_pro', 'cto_budget_mode_pro.id', '=', 'eligibility_main.mop')
+            ->select('eligibility_main.*', 'cto_budget_mode_pro.mode_pro_desc', db::raw("GROUP_CONCAT(eligibility_remarks.`remarks` SEPARATOR '<br>') as remarks"))
+            ->where('eligibility_main.stat', 0)
+            ->where('eligibility_main.validity', '!=', 'NULL')
+            // ->whereRaw(" (`business_name` like ? or `business_owner` like ? or `eligibility_description` like ? or `mode_pro_desc` like ? or `remarks` like ? or `validity` like ? ) ",['%' . $request->dataz . '%','%' . $request->dataz . '%','%' . $request->dataz . '%', '%' . $request->dataz . '%','%' . $request->dataz . '%','%' . $request->dataz . '%'])
+            // ->whereYear('validity', Carbon::now()->year)
+            ->whereBetween(db::raw('ifnull(date(validity),"")'), [$request->yearFrom, $request->yearTo])
+            ->orderBy('eligibility_main.validity', 'desc')
+            ->groupBy('eligibility_main.id')->get();
         return response()->json(new JsonResponse($list));
     }
     public function showfilter_year(Request $request)
@@ -109,7 +109,7 @@ class eligibilityController extends Controller
             ->select('eligibility_main.*', 'cto_budget_mode_pro.mode_pro_desc', db::raw("GROUP_CONCAT(eligibility_remarks.`remarks` SEPARATOR '<br>') as remarks"))
             ->where('eligibility_main.stat', 0)
             // ->whereRaw(" (`business_name` like ? or `business_owner` like ? or `eligibility_description` like ? or `mode_pro_desc` like ? or `remarks` like ? or `validity` like ? ) ",['%' . $request->dataz . '%','%' . $request->dataz . '%','%' . $request->dataz . '%', '%' . $request->dataz . '%','%' . $request->dataz . '%','%' . $request->dataz . '%'])
-            ->whereBetween(db::raw('ifnull(date(validity),"")'),[$request->yearFrom, $request->yearTo])
+            ->whereBetween(db::raw('ifnull(date(validity),"")'), [$request->yearFrom, $request->yearTo])
             ->orderBy('eligibility_main.validity', 'desc')
             ->groupBy('eligibility_main.id')->get();
         return response()->json(new JsonResponse($list));
@@ -330,8 +330,8 @@ class eligibilityController extends Controller
 
 
             $description = DB::table($this->Bac . '.eligibility_main')
-                ->leftJoin($this->Bac . '.eligibility_remarks', 'eligibility_main.id', '=', 'eligibility_remarks.main_id')
-                ->leftJoin($this->budget . '.cto_budget_mode_pro', 'cto_budget_mode_pro.id', '=', 'eligibility_main.mop')
+                ->join($this->Bac . '.eligibility_remarks', 'eligibility_main.id', '=', 'eligibility_remarks.main_id')
+                ->join($this->budget . '.cto_budget_mode_pro', 'cto_budget_mode_pro.id', '=', 'eligibility_main.mop')
                 ->select('eligibility_main.*', 'cto_budget_mode_pro.mode_pro_desc', db::raw("GROUP_CONCAT(eligibility_remarks.`remarks` SEPARATOR '<br>') as remarks"))
                 ->where('eligibility_main.id', $id)
 
@@ -364,7 +364,7 @@ class eligibilityController extends Controller
 
       <tr>
           <th width="100%" align="center">
-              <img src="' . public_path() . '/img/NAGALOGO.jpg"  height="45" width="45">
+              <img src="' . public_path() . '/img/Logo1.png"  height="45" width="45">
           </th>
       </tr>
       <tr>
@@ -374,7 +374,7 @@ class eligibilityController extends Controller
         <th width="100%" align="center" style="font-size:10pt"> Province of Cebu </th>
       </tr>
       <tr>
-        <th width="100%" align="center" style="font-size:10pt"> Minicipality of Dumanjug </th>
+        <th width="100%" align="center" style="font-size:10pt"> City Government of Talisay </th>
       </tr>
       <tr>
          <th width="100%" align="center" style="font-size:10pt"> Office of the City Mayor </th>
@@ -414,7 +414,7 @@ class eligibilityController extends Controller
                 <td width="100%"><p style="text-align:justify;font-size:11pt">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                 This is to further certify that having submitted the above eligibility document; the
                 <b><u> ' . $row->business_name . ' </u></b>is found to be eligible to supply/provide <b> ' . $row->eligibility_description . ' </b>
-                for the City of Government of Naga, Cebu through
+                for the City of Government of Talisay, Cebu through
                 <u><b> Alternative Modes of Procurement</b> - <i>' . $desc->mode_pro_desc . '</i></u>.
                 </p></td>
             </tr>
@@ -449,6 +449,11 @@ class eligibilityController extends Controller
             </tr>
             <br/>
             <br/>
+
+            <tr>
+                <td width="19%"> </td>
+                <td width="81%" style="font-size:11pt;text-align:justify"> ENGR.ARTHUR S. VILLAMOR </td>
+            </tr>
             <tr>
                 <td width="19%"> </td>
                 <td width="81%" style="font-size:11pt;text-align:justify"> BAC Chairman </td>

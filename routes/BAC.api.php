@@ -80,11 +80,16 @@ Route::namespace('Api')->group(function () {
             });
             Route::prefix('project')->group(function () {
                 Route::post('printAbstractBid', 'Mod_Bac\projectController@printAbstractBid');
+                Route::post('printNTP', 'Mod_Bac\projectController@printNTP');
+                Route::post('printRFQ', 'Mod_Bac\projectController@printRFQ');
+                Route::post('printITB', 'Mod_Bac\projectController@printITB');
                 Route::post('storeDeclaration', 'Mod_Bac\projectController@storeDeclaration');
                 Route::get('getGSDocs/{id}', 'Mod_Bac\projectController@getGSDocs');
                 Route::get('itbGetActivities/{id}', 'Mod_Bac\projectController@itbGetActivities');
                 Route::post('showITBINFRA', 'Mod_Bac\projectController@showITBINFRA');
-
+                Route::post('printNOATemplate', 'Mod_Bac\projectController@printNOATemplate');
+                Route::post('printContractBids', 'Mod_Bac\projectController@printContractBids');
+                Route::post('PrintBidOut2', 'Mod_Bac\projectController@PrintBidOut2');
                 Route::get('getDocs', 'Mod_Bac\projectController@getDocs');
                 Route::get('getMOP', 'Mod_Bac\projectController@getMOP');
                 Route::get('getDocsPrebid_bulletin', 'Mod_Bac\projectController@getDocsPrebid_bulletin');
@@ -186,6 +191,115 @@ Route::namespace('Api')->group(function () {
 
                 Route::get('getOpeningProjectByDate/{date}/{type}', 'Mod_Bac\projectController@getOpeningProjectByDate');
                 Route::get('displayCalendarPerdate', 'Mod_Bac\projectController@displayCalendarPerdate');
+            });
+            Route::prefix('projectAlternative')->group(function () {
+                Route::post('printAbstractBid', 'Mod_Bac\projectAlternativeController@printAbstractBid');
+                Route::post('storeDeclaration', 'Mod_Bac\projectAlternativeController@storeDeclaration');
+                Route::get('getGSDocs/{id}', 'Mod_Bac\projectAlternativeController@getGSDocs');
+                Route::get('itbGetActivities/{id}', 'Mod_Bac\projectAlternativeController@itbGetActivities');
+                Route::post('showITBINFRA', 'Mod_Bac\projectAlternativeController@showITBINFRA');
+
+                Route::get('getDocs', 'Mod_Bac\projectAlternativeController@getDocs');
+                Route::get('getMOP', 'Mod_Bac\projectAlternativeController@getMOP');
+                Route::get('getDocsPrebid_bulletin', 'Mod_Bac\projectAlternativeController@getDocsPrebid_bulletin');
+                Route::get('dones/{id}', 'Mod_Bac\projectAlternativeController@dones');
+
+                Route::post('upload', 'Mod_Bac\projectAlternativeController@upload');
+                Route::post('uploadPreBID', 'Mod_Bac\projectAlternativeController@uploadPreBID');
+                Route::post('uploadBIDOpining', 'Mod_Bac\projectAlternativeController@uploadBIDOpining');
+
+                Route::get('getAttach', 'Mod_Bac\projectAlternativeController@getAttach');
+                Route::get('getAttachPreBID', 'Mod_Bac\projectAlternativeController@getAttachPreBID');
+                Route::get('getAttachBIDOpening', 'Mod_Bac\projectAlternativeController@getAttachBIDOpening');
+
+                Route::get('getAttachBull', 'Mod_Bac\projectAlternativeController@getAttachBull');
+
+                Route::get('documentView/{type}', 'Mod_Bac\projectAlternativeController@documentView');
+                Route::get('documentViewPreBID/{type}', 'Mod_Bac\projectAlternativeController@documentViewPreBID');
+                Route::get('documentViewBIDOpining/{type}', 'Mod_Bac\projectAlternativeController@documentViewBIDOpining');
+
+                Route::get('uploadRemove/{id}', 'Mod_Bac\projectAlternativeController@uploadRemove');
+                Route::get('uploadRemovePreBID/{id}', 'Mod_Bac\projectAlternativeController@uploadRemovePreBID');
+                Route::get('uploadRemoveBIDOpening/{id}', 'Mod_Bac\projectAlternativeController@uploadRemoveBIDOpening');
+
+                ### setup
+                Route::get('getBacMembers', 'Mod_Bac\projectAlternativeController@getBacMembers');
+                Route::get('getBacMembersForOpeningBID', 'Mod_Bac\projectAlternativeController@getBacMembersForOpeningBID');
+                ###
+                Route::get('edit/{id}', 'Mod_Bac\projectAlternativeController@edit');
+                Route::get('show', 'Mod_Bac\projectAlternativeController@show');
+                Route::get('showFilter', 'Mod_Bac\projprojectAlternativeControllerectController@showFilter');
+                Route::get('showprocProject_fltr', 'Mod_Bac\projectAlternativeController@showprocProject_fltr');
+                Route::get('showEntry', 'Mod_Bac\projectAlternativeController@showEntry');
+
+                Route::get('showBidout', 'Mod_Bac\projectAlternativeController@showBidout');
+
+                Route::post('store', 'Mod_Bac\projectAlternativeController@store');
+                Route::get('cancel/{id}', 'Mod_Bac\projectAlternativeController@cancel');
+                ## 1 start
+                Route::get('getProject', 'Mod_Bac\projectAlternativeController@getProject');
+                Route::post('storePreProc', 'Mod_Bac\projectAlternativeController@storePreProc');
+                ## 1 end
+                Route::get('getRef', 'Mod_Bac\projectAlternativeController@getRef');
+                Route::get('get_1pre', 'Mod_Bac\projectAlternativeController@get_1pre');
+                Route::get('get_1preSelected/{id}', 'Mod_Bac\projectAlternativeController@get_1preSelected');
+                ## 2
+                Route::get('get_2invitation', 'Mod_Bac\projectAlternativeController@get_2invitation');
+                Route::get('get_3invitation/{id}', 'Mod_Bac\projectAlternativeController@get_3invitation');
+                Route::post('storeInvitationToBid', 'Mod_Bac\projectAlternativeController@storeInvitationToBid');
+                ## 2
+                Route::get('get_7suplemental', 'Mod_Bac\projectAlternativeController@get_7suplemental');
+                Route::get('get_15reso', 'Mod_Bac\projectAlternativeController@get_15reso');
+                Route::get('bacc_16noa', 'Mod_Bac\projectAlternativeController@bacc_16noa');
+                ## 3
+                Route::get('get_3invitation_prebid', 'Mod_Bac\projectAlternativeController@get_3invitation_prebid');
+                Route::post('store3invitation_to_observer_prebid', 'Mod_Bac\projectAlternativeController@store3invitation_to_observer_prebid');
+                ###4 prebid
+                Route::post('store4_prebid', 'Mod_Bac\projectAlternativeController@store4_prebid');
+                Route::get('get_4prebid_conference', 'Mod_Bac\projectAlternativeController@get_4prebid_conference');
+                Route::post('removedocs', 'Mod_Bac\projectAlternativeController@removedocs');
+                ###5
+                Route::post('store5invitation_to_bid_opening', 'Mod_Bac\projectAlternativeController@store5invitation_to_bid_opening');
+                Route::get('get5invitation_to_bid_opening', 'Mod_Bac\projectAlternativeController@get5invitation_to_bid_opening');
+                Route::post('getBacMembersForOpeningBIDSupplierStore', 'Mod_Bac\projectAlternativeController@getBacMembersForOpeningBIDSupplierStore');
+                Route::post('getBacMembersForOpeningBIDSupplierRemove', 'Mod_Bac\projectAlternativeController@getBacMembersForOpeningBIDSupplierRemove');
+                ###6
+                Route::get('getSupplierInvited', 'Mod_Bac\projectAlternativeController@getSupplierInvited');
+                Route::post('getSupplierInvitedRemove', 'Mod_Bac\projectAlternativeController@getSupplierInvitedRemove');
+
+                Route::post('store6bid_opening', 'Mod_Bac\projectAlternativeController@store6bid_opening');
+                Route::get('getBIDList', 'Mod_Bac\projectAlternativeController@getBIDList');
+                ###7
+                Route::post('store7postqua', 'Mod_Bac\projectAlternativeController@store7postqua');
+                Route::get('getPOSTQUAList', 'Mod_Bac\projectAlternativeController@getPOSTQUAList');
+
+                ### 8
+                Route::get('getNoaWinner', 'Mod_Bac\projectAlternativeController@getNoaWinner');
+                Route::post('store8NOA', 'Mod_Bac\projectAlternativeController@store8NOA');
+                #### 9
+                Route::get('getContract', 'Mod_Bac\projectAlternativeController@getContract');
+                Route::post('store9Contract', 'Mod_Bac\projectAlternativeController@store9Contract');
+                Route::get('bacc_ContractList', 'Mod_Bac\projectAlternativeController@bacc_ContractList');
+
+                ### 10
+                Route::post('store10NTP', 'Mod_Bac\projectAlternativeController@store10NTP');
+                Route::get('getNTP', 'Mod_Bac\projectAlternativeController@getNTP');
+                Route::get('bacc_NPTList', 'Mod_Bac\projectAlternativeController@bacc_NPTList');
+
+                ###calendar
+                Route::get('displayCalendar', 'Mod_Bac\projectAlternativeController@displayCalendar');
+                Route::post('printBidOut', 'Mod_Bac\projectAlternativeController@printBidOut');
+                Route::get('displayInfra', 'Mod_Bac\projectAlternativeController@displayInfra');
+                Route::get('displayGoods', 'Mod_Bac\projectAlternativeController@displayGoods');
+
+
+                Route::post('storeInvitationBID', 'Mod_Bac\projectAlternativeController@storeInvitationBID');
+                Route::get('printLetter/{id}', 'Mod_Bac\projectAlternativeController@printLetter');
+
+                Route::get('getBIDinvitationList', 'Mod_Bac\projectAlternativeController@getBIDinvitationList');
+
+                Route::get('getOpeningProjectByDate/{date}/{type}', 'Mod_Bac\projectAlternativeController@getOpeningProjectByDate');
+                Route::get('displayCalendarPerdate', 'Mod_Bac\projectAlternativeController@displayCalendarPerdate');
             });
         });
     });
