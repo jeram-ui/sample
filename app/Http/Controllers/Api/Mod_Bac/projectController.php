@@ -3759,10 +3759,10 @@ class projectController extends Controller
                     </td>
                 </tr>
                 <tr>
-                    <td width="25%" style="font-size:10pt"><b>EDGAR M. MABUNAY</b></td>
-                    <td width="25%" style="font-size:10pt"><b>Atty. RUDELYN C. NAVARRO</b></td>
-                    <td width="25%" style="font-size:10pt"><b>Atty. BEVERTLY I. TUTOR</b></td>
-                    <td width="25%" style="font-size:10pt"><b>Engr. ARNEL C. BACALSO</b></td>
+                    <td width="25%" style="font-size:10pt"><b>___________________</b></td>
+                    <td width="25%" style="font-size:10pt"><b>___________________</b></td>
+                    <td width="25%" style="font-size:10pt"><b>___________________</b></td>
+                    <td width="25%" style="font-size:10pt"><b>___________________</b></td>
                 </tr>
                 <tr>
                     <td width="25%" style="font-size:10pt"><i>Chairman (City Budget Officer)</i></td>
@@ -3785,10 +3785,10 @@ class projectController extends Controller
                 </tr>
 
                 <tr>
-                    <td width="25%" style="font-size:10pt"><b>Ms. MARY JANE A. ENRILE</b></td>
-                    <td width="25%" style="font-size:10pt"><b>Atty. GIOVANNI D. SUSUSCO</b></td>
-                    <td width="25%" style="font-size:10pt"><b>Ms. ASARIA P. CAÑAL</b></td>
-                    <td width="25%" style="font-size:10pt"><b>GERALD ANTHONY V. GULLAS JR.</b></td>
+                    <td width="25%" style="font-size:10pt"><b>___________________</b></td>
+                    <td width="25%" style="font-size:10pt"><b>___________________</b></td>
+                    <td width="25%" style="font-size:10pt"><b>___________________</b></td>
+                    <td width="25%" style="font-size:10pt"><b>___________________</b></td>
                 </tr>
                 <tr>
                     <td width="25%" style="font-size:10pt"><i>Member (Licensing Officer III)</i></td>
