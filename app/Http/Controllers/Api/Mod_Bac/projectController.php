@@ -453,7 +453,8 @@ class projectController extends Controller
             ->where('pow_main_individual.status', '=', 'Approved')
 
             ->whereIn('pow_main_individual.frm', ['POW', 'PROPOSAL'])
-            ->where('pow_main_individual.bidamount', '>', 800000.00)
+            // ->where('pow_main_individual.bidamount', '>', 800000.00)
+            ->where('pow_main_individual.bidamount', '>', 200000.00)
             ->whereNotIn('pow_main_individual.id', $array)
             ->groupBy('pow_main_individual.id')
             ->get();
